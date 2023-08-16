@@ -1,0 +1,11 @@
+../Core/Src/DIN_DOUT.c:17:6:PL_SET	4	static
+../Core/Src/DIN_DOUT.c:21:6:PL_RESER	4	static
+../Core/Src/DIN_DOUT.c:36:6:RegisteDATALoadInit	8	static
+../Core/Src/DIN_DOUT.c:41:6:RegisterDATALoad	24	static
+../Core/Src/DIN_DOUT.c:96:6:HAL_SPI_RxCpltCallback	16	static,ignoring_inline_asm
+../Core/Src/DIN_DOUT.c:123:22:eDinConfig	48	static
+../Core/Src/DIN_DOUT.c:148:13:vDINInit	8	static
+../Core/Src/DIN_DOUT.c:158:6:StartDIN_DOUT	24	static
+../Core/Src/DIN_DOUT.c:203:6:vSetupKeyboard	16	static
+../Core/Src/DIN_DOUT.c:210:15:pGetKeyboardQueue	4	static
+../Core/Src/DIN_DOUT.c:216:6:vKeyboardTask	40	static

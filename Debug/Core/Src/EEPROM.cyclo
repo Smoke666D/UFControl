@@ -1,0 +1,3 @@
+../Core/Src/EEPROM.c:14:6:eEEPROM	1
+../Core/Src/EEPROM.c:20:22:eEEPROMWr	10
+../Core/Src/EEPROM.c:83:22:eEEPROMRd	5

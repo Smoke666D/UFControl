@@ -1,0 +1,10 @@
+../Core/Src/LCD.c:39:13:LCD_SetString	24	static
+../Core/Src/LCD.c:70:13:WriteByte	24	static
+../Core/Src/LCD.c:78:13:ReadByte	16	static
+../Core/Src/LCD.c:83:13:DelayUS	16	static
+../Core/Src/LCD.c:92:13:Strob	8	static
+../Core/Src/LCD.c:99:13:LCD_SendCommand	16	static
+../Core/Src/LCD.c:109:13:LCD_SendData	16	static
+../Core/Src/LCD.c:119:6:Init16X2LCD	8	static
+../Core/Src/LCD.c:127:6:vRedrawLCD	32	static
+../Core/Src/LCD.c:153:6:LCD_Task	16	static
