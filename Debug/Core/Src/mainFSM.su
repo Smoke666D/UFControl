@@ -1,0 +1,5 @@
+../Core/Src/mainFSM.c:6:10:usGetRegInput	24	static
+../Core/Src/mainFSM.c:12:6:vUPDATECoils	16	static
+../Core/Src/mainFSM.c:16:6:vSetReg	16	static
+../Core/Src/mainFSM.c:28:10:usGetReg	24	static
+../Core/Src/mainFSM.c:42:6:StartMb	32	static

@@ -48,8 +48,8 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
- ../Core/Inc/data_model.h ../Core/Inc/lamp.h ../Core/Inc/EEPROM.H \
- ../Core/Inc/main.h
+ ../Core/Inc/lamp.h ../Core/Inc/main.h ../Core/Inc/MainFSM.h \
+ ../Core/Inc/registers.h
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
@@ -100,7 +100,7 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
-../Core/Inc/data_model.h:
 ../Core/Inc/lamp.h:
-../Core/Inc/EEPROM.H:
 ../Core/Inc/main.h:
+../Core/Inc/MainFSM.h:
+../Core/Inc/registers.h:

@@ -1,4 +1,4 @@
 ../Core/Src/lamp.c:14:13:vResetLamp	2
 ../Core/Src/lamp.c:25:6:InitData	2
 ../Core/Src/lamp.c:37:6:vSaveData	2
-../Core/Src/lamp.c:47:6:LAMPstart	3
+../Core/Src/lamp.c:50:6:LAMPstart	12

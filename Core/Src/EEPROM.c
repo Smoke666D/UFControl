@@ -5,7 +5,8 @@
  *      Author: i.dymov
  */
 
-#include "EEPROM.h"
+
+#include "EEPROM.H"
 
 static uint8_t sector_buffer[SECTOR_SIZE + ADDRESS_DATA];
 static I2C_HandleTypeDef  * I2C;

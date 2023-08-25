@@ -7,6 +7,7 @@
 
 
 #include "main.h"
+#include "data_model.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern DMA_HandleTypeDef hdma_spi2_rx;
@@ -38,8 +39,9 @@ void RegisteDATALoadInit()
 	 pREGEvent = xEventGroupCreateStatic(&xREGCreatedEventGroup );
 }
 
-void RegisterDATALoad()
+static uint8_t RegisterDATALoad()
 {
+	uint8_t res = 0;
 	uint8_t i,j;
 	switch (PL_STATE)
 	{
@@ -61,7 +63,7 @@ void RegisterDATALoad()
 				{
 					data[i] ^=  dc_mask[i];
 				}
-
+				res = 1;
 			}
 		break;
 		case 1:
@@ -91,6 +93,7 @@ void RegisterDATALoad()
 
 
 	}
+	return (res);
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
@@ -157,11 +160,14 @@ static void vDINInit()
 
 void StartDIN_DOUT(void *argument)
 {
+	EventGroupHandle_t system_event = NULL;
+	uint8_t init_state = 0;
 	vDINInit();
 	while(1)
 	{
+
 		vTaskDelay(10);
-		RegisterDATALoad();
+
 		for (uint8_t i = 0; i <DIN_COUNT; i++)
 		{
 				if ( xDinConfig[i].eInputType != RPM_CONFIG )
@@ -182,11 +188,23 @@ void StartDIN_DOUT(void *argument)
 					}
 			  }
 		}
-		SetData(DOOR_ADDR, (uint16_t)xDinConfig[DOOR].ucValue);
-		SetData(REMOTE_ADDR,(uint16_t)xDinConfig[REMOTE].ucValue);
-		SetData(FIRE_ADDR, (uint16_t)xDinConfig[FIRE].ucValue);
-		SetData(LOCAL_ADDR, (uint16_t) xDinConfig[LOCAL_C].ucValue);
-		SetData(REMOTE_ACT_ADDR, (uint16_t)xDinConfig[REMOTE_ACT].ucValue);
+		if   (RegisterDATALoad() == 1)
+		{
+			uint32_t bdata = data[0] | data[1]<<8 | (data[2] & 0x3F)<<16;
+			vSetRegister(LAM_ERROR_REG_LSB, bdata);
+		    bdata = data[2]>>6 | data[3]<<10 | (data[4] & 0x3F)<<18 | data[5];
+			vSetRegister(LAM_ERROR_REG_MSB, bdata);
+		}
+		vSetRegisterBit(DEVICE_ALARM_REG, DOOR_ALARM ,  (uint16_t)xDinConfig[DOOR].ucValue );
+		vSetRegisterBit(DEVICE_STATUS_REG,REMOTE_FLAG,(uint16_t)xDinConfig[REMOTE].ucValue);
+		vSetRegisterBit(DEVICE_STATUS_REG,FIRE_FLAG, (uint16_t)xDinConfig[FIRE].ucValue);
+		vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_FLAG, (uint16_t) xDinConfig[LOCAL_C].ucValue);
+		vSetRegisterBit(DEVICE_STATUS_REG, REMOTE_ACT_FLAG, (uint16_t)xDinConfig[REMOTE_ACT].ucValue);
+		if ( init_state == 0 )
+		{
+			init_state = 1;
+			xEventGroupSetBits(system_event,   DIN_SYSTEM_READY);
+		}
 	}
 
 }

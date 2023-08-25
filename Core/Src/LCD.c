@@ -15,6 +15,8 @@ static uint8_t LCD_OUT_BUFFER[LED_STRING_LEN ];
 static IDICATOR_STRING_BUFFER LCD_DATA_CHNGE = NO_CHANGE;
 static EventGroupHandle_t lcdFlags;
 static uint32_t local_period = 40;
+static uint8_t cursor_pos = 0;
+static uint8_t cur_cursor_pos = 0;
 extern TIM_HandleTypeDef htim7;
 
 
@@ -31,12 +33,15 @@ const unsigned char russian[]={ 0x41, 0xA0, 0x42, 0xA1, 0xE0, 0x45,
 	osTimers = event;
 }*/
 
-
+void ClearScreenBuffer()
+{
+	memset(LCD_BUFFER,0,LED_STRING_LEN *2 );
+}
 
 /*
  * Функция ввывода сторки по нужному положения на индикаторе.
  */
-static void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y)
+void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y)
 {
  uint8_t k = 0;
  for (uint8_t i = pos_x*pos_y;i< MAX_CHAR;i++)
@@ -46,14 +51,8 @@ static void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y)
 		 if (data[k]!=LCD_BUFFER[i])
 		 {
 			 LCD_DATA_CHNGE |= (i >20)?DOWN_STRING:UP_STRING;
-			 if (data[k]>='А')
-			 {
-				 LCD_BUFFER[i] = russian[data[k++]-'А'];
-			 }
-			 else
-			 {
-				 LCD_BUFFER[i] = data[k++];
-			 }
+		     LCD_BUFFER[i] = (data[k]>='А') ?  russian[data[k]-'А'] : data[k];
+			 k++;
 		 }
 	 }
 	 else
@@ -65,6 +64,19 @@ static void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y)
  {
 	 xEventGroupSetBits(lcdFlags,LCD_DATA_CHNGE );
  }
+}
+/*
+ *
+ *
+ */
+void LCD_SET_Cursor( uint8_t status, uint8_t x, uint8_t y)
+{
+
+
+}
+void LCD_Cursor_Off()
+{
+
 }
 
 static void WriteByte( uint8_t data)

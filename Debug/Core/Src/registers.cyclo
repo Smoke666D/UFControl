@@ -1,0 +1,7 @@
+../Core/Src/registers.c:13:6:vInitRegister	3
+../Core/Src/registers.c:30:6:vSetRegister	2
+../Core/Src/registers.c:37:6:vSetRegisterBit	3
+../Core/Src/registers.c:48:10:uGetRegister	2
+../Core/Src/registers.c:53:6:vDecRegister	1
+../Core/Src/registers.c:57:6:vIncRegister	1
+../Core/Src/registers.c:61:6:vSaveRegister	1

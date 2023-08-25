@@ -53,6 +53,7 @@ RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi2;
 
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
 
@@ -113,6 +114,30 @@ const osThreadAttr_t LAP_task_attributes = {
   .stack_size = sizeof(LAP_taskBuffer),
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for mbTask */
+osThreadId_t mbTaskHandle;
+uint32_t mbTaskBuffer[ 128 ];
+osStaticThreadDef_t mbTaskControlBlock;
+const osThreadAttr_t mbTask_attributes = {
+  .name = "mbTask",
+  .cb_mem = &mbTaskControlBlock,
+  .cb_size = sizeof(mbTaskControlBlock),
+  .stack_mem = &mbTaskBuffer[0],
+  .stack_size = sizeof(mbTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for ControlTask */
+osThreadId_t ControlTaskHandle;
+uint32_t mainControlTaskBuffer[ 128 ];
+osStaticThreadDef_t mainControlTaskControlBlock;
+const osThreadAttr_t ControlTask_attributes = {
+  .name = "ControlTask",
+  .cb_mem = &mainControlTaskControlBlock,
+  .cb_size = sizeof(mainControlTaskControlBlock),
+  .stack_mem = &mainControlTaskBuffer[0],
+  .stack_size = sizeof(mainControlTaskBuffer),
+  .priority = (osPriority_t) osPriorityBelowNormal,
+};
 /* Definitions for TimersEvent */
 osEventFlagsId_t TimersEventHandle;
 osStaticEventGroupDef_t TimersEventControlBlock;
@@ -128,6 +153,30 @@ const osEventFlagsAttr_t DIN_DOUT_EVENT_attributes = {
   .name = "DIN_DOUT_EVENT",
   .cb_mem = &DIN_DOUT_EVENTControlBlock,
   .cb_size = sizeof(DIN_DOUT_EVENTControlBlock),
+};
+/* Definitions for xOSEvent */
+osEventFlagsId_t xOSEventHandle;
+osStaticEventGroupDef_t myEvent03ControlBlock;
+const osEventFlagsAttr_t xOSEvent_attributes = {
+  .name = "xOSEvent",
+  .cb_mem = &myEvent03ControlBlock,
+  .cb_size = sizeof(myEvent03ControlBlock),
+};
+/* Definitions for xUARTEvnet */
+osEventFlagsId_t xUARTEvnetHandle;
+osStaticEventGroupDef_t myEvent04ControlBlock;
+const osEventFlagsAttr_t xUARTEvnet_attributes = {
+  .name = "xUARTEvnet",
+  .cb_mem = &myEvent04ControlBlock,
+  .cb_size = sizeof(myEvent04ControlBlock),
+};
+/* Definitions for SystemUpdateEvent */
+osEventFlagsId_t SystemUpdateEventHandle;
+osStaticEventGroupDef_t SystemUpdateEventControlBlock;
+const osEventFlagsAttr_t SystemUpdateEvent_attributes = {
+  .name = "SystemUpdateEvent",
+  .cb_mem = &SystemUpdateEventControlBlock,
+  .cb_size = sizeof(SystemUpdateEventControlBlock),
 };
 /* USER CODE BEGIN PV */
 
@@ -145,11 +194,14 @@ static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_ADC3_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_TIM2_Init(void);
 void StartDefaultTask(void *argument);
 extern void LCD_Task(void *argument);
 extern void StartDIN_DOUT(void *argument);
 extern void vKeyboardTask(void *argument);
 extern void LAMPstart(void *argument);
+extern void StartMb(void *argument);
+extern void StartControlTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -157,7 +209,42 @@ extern void LAMPstart(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+EventGroupHandle_t xGetOSEvent()
+{
+	return (xOSEventHandle);
+}
+ EventGroupHandle_t xGetUARTEvent()
+ {
+	 return (xUARTEvnetHandle);
+ }
+ EventGroupHandle_t xGetSystemUpdateEvent()
+ {
+	 return (SystemUpdateEventHandle);
+ }
+ /*osSemaphoreId_t xGetSystemSem()
+ {
+ return (mbSemHandle);
+ }*/
 
+ void vTimerInit(uint16_t timeout)
+ {
+ 	htim2.Init.Period = timeout;
+     if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+ 	{
+ 	  Error_Handler();
+ 	}
+
+ }
+ void vStartTimer()
+ {
+ 	HAL_TIM_Base_Stop_IT(&htim2);
+ 	htim2.Instance->CNT=0;
+ 	HAL_TIM_Base_Start_IT(&htim2);
+ }
+ void vStopTimer()
+ {
+ 	HAL_TIM_Base_Stop_IT(&htim2);
+ }
 /* USER CODE END 0 */
 
 /**
@@ -197,6 +284,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_ADC3_Init();
   MX_TIM6_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -236,6 +324,12 @@ int main(void)
   /* creation of LAP_task */
   LAP_taskHandle = osThreadNew(LAMPstart, NULL, &LAP_task_attributes);
 
+  /* creation of mbTask */
+  mbTaskHandle = osThreadNew(StartMb, NULL, &mbTask_attributes);
+
+  /* creation of ControlTask */
+  ControlTaskHandle = osThreadNew(StartControlTask, NULL, &ControlTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -246,6 +340,15 @@ int main(void)
 
   /* creation of DIN_DOUT_EVENT */
   DIN_DOUT_EVENTHandle = osEventFlagsNew(&DIN_DOUT_EVENT_attributes);
+
+  /* creation of xOSEvent */
+  xOSEventHandle = osEventFlagsNew(&xOSEvent_attributes);
+
+  /* creation of xUARTEvnet */
+  xUARTEvnetHandle = osEventFlagsNew(&xUARTEvnet_attributes);
+
+  /* creation of SystemUpdateEvent */
+  SystemUpdateEventHandle = osEventFlagsNew(&SystemUpdateEvent_attributes);
 
   /* USER CODE BEGIN RTOS_EVENTS */
  // vSetTimersEnvet( TimersEventHandle);
@@ -549,6 +652,51 @@ static void MX_SPI2_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 65535;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief TIM6 Initialization Function
   * @param None
   * @retval None
@@ -790,7 +938,6 @@ void StartDefaultTask(void *argument)
   * @param  htim : TIM handle
   * @retval None
   */
-
 
 /**
   * @brief  This function is executed in case of error occurrence.

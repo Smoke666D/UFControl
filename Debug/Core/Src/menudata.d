@@ -1,5 +1,6 @@
-Core/Src/menudata.o: ../Core/Src/menudata.c ../Core/Src/menu.h \
- ../Core/Inc/main.h ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
+Core/Src/menudata.o: ../Core/Src/menudata.c ../Core/Inc/menudata.h \
+ ../Core/Inc/menu.h ../Core/Inc/main.h \
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h \
@@ -48,9 +49,11 @@ Core/Src/menudata.o: ../Core/Src/menudata.c ../Core/Src/menu.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
- ../Core/Inc/data_model.h ../Core/Inc/lamp.h ../Core/Inc/EEPROM.H \
- ../Core/Inc/main.h
-../Core/Src/menu.h:
+ ../Core/Inc/lamp.h ../Core/Inc/MainFSM.h ../Core/Inc/registers.h \
+ ../Core/Inc/data_model.h ../Core/Inc/datastorage.h ../Core/Inc/EEPROM.H \
+ ../Core/Inc/data_model.h
+../Core/Inc/menudata.h:
+../Core/Inc/menu.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
@@ -101,7 +104,10 @@ Core/Src/menudata.o: ../Core/Src/menudata.c ../Core/Src/menu.h \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
-../Core/Inc/data_model.h:
 ../Core/Inc/lamp.h:
+../Core/Inc/MainFSM.h:
+../Core/Inc/registers.h:
+../Core/Inc/data_model.h:
+../Core/Inc/datastorage.h:
 ../Core/Inc/EEPROM.H:
-../Core/Inc/main.h:
+../Core/Inc/data_model.h:

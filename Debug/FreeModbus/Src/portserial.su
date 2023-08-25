@@ -1,0 +1,7 @@
+../FreeModbus/Src/portserial.c:56:13:vReviceEnable	8	static
+../FreeModbus/Src/portserial.c:61:13:vTransmitEnable	8	static
+../FreeModbus/Src/portserial.c:67:6:xMBPortSerialInit	16	static
+../FreeModbus/Src/portserial.c:125:6:vMBPortSerialEnable	24	static
+../FreeModbus/Src/portserial.c:165:6:vMBPortClose	4	static
+../FreeModbus/Src/portserial.c:170:6:xMBPortSerialPutByte	16	static
+../FreeModbus/Src/portserial.c:179:6:xMBPortSerialGetByte	16	static

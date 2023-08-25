@@ -33,9 +33,12 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "lcd.h"
 #include "DIN_DOUT.H"
-#include "data_model.h"
 #include "lamp.h"
-#include "EEPROM.H"
+#include "cmsis_os.h"
+#include "string.h"
+#include "MainFSM.h"
+#include "registers.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -57,7 +60,11 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+#define REGISTER_SYSTEM_READY 0x01
+#define LAMP_REINIT           0x02
+#define DIN_SYSTEM_READY      0x04
+#define WORK_READY            0x08
+EventGroupHandle_t xGetSystemUpdateEvent();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

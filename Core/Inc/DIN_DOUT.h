@@ -20,6 +20,12 @@
 #define DEF_H_FRONT 10U
 #define DEF_L_FRONT 10U
 
+#define up_key             0x01U
+#define down_key           0x02U
+#define enter_key          0x04U
+#define exit_key           0x08U
+
+
 
 typedef struct {
 	uint32_t Pin;

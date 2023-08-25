@@ -1,0 +1,7 @@
+../Core/Src/registers.c:13:6:vInitRegister	16	static
+../Core/Src/registers.c:30:6:vSetRegister	16	static
+../Core/Src/registers.c:37:6:vSetRegisterBit	16	static
+../Core/Src/registers.c:48:10:uGetRegister	16	static
+../Core/Src/registers.c:53:6:vDecRegister	16	static
+../Core/Src/registers.c:57:6:vIncRegister	16	static
+../Core/Src/registers.c:61:6:vSaveRegister	16	static

@@ -11,6 +11,8 @@
 #define MAX_LAMP_COUNT  44
 #define LAMP_HOUR_STEP  1000
 
+#include "main.h"
+
 typedef enum
 {
   NOT_CONNECT = 0,
@@ -26,6 +28,13 @@ typedef struct __packed
 
 } LAMP_t;
 
+
+typedef enum
+{
+  WAIT_FOR_INIT,
+  INIT,
+  WORK,
+} LAMP_FSM_SATE;
 
 void LAMPstart(void *argument);
 #endif /* INC_LAMP_H_ */

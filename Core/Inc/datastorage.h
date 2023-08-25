@@ -2,9 +2,7 @@
 #define DATASTORAGE_H_
 
 
-
-#include "main.h"
-
+#include "EEPROM.H"
 /*
  *  Настрйоки драйвера
  */
@@ -26,7 +24,7 @@
 #define RECORD_FORMAT_ADDR   ( RECORD_SIZE_ADDR    + sizeof(uint8_t) )
 #define REGISTER_OFFSET      (RECORD_FORMAT_ADDR + 4U)
 #define EEPROM_DATA_FRAME 5U
-#define  MAX_RECORD_SIZE 	  16
+#define MAX_RECORD_SIZE 	  16
 #define REGISTER_TYPE_MASK    0xF0
 #define RECORD_TYPE_MASK	  0x03
 #define BYTE_MASK             0xFF

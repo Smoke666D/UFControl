@@ -57,6 +57,9 @@ typedef enum
 #define LCD_UPDATE_EVENT 0x0002
 void vSetTimersEnvet(osEventFlagsId_t event);
 void vTimeExpire();
-
 void LCD_Task(void *argument);
+void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y);
+void LCD_SET_Cursor( uint8_t status, uint8_t x, uint8_t y);
+void ClearScreenBuffer();
+void LCD_Cursor_Off();
 #endif /* INC_LCD_H_ */

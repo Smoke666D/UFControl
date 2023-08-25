@@ -9,8 +9,6 @@
 #define EEPROM_H_
 
 #include "main.h"
-#include "cmsis_os.h"
-#include "string.h"
 /*
  *  Настройки драйвера
  */

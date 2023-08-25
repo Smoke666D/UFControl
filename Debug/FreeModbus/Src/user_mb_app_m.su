@@ -1,0 +1,5 @@
+../FreeModbus/Src/user_mb_app_m.c:55:10:usGetInput	16	static
+../FreeModbus/Src/user_mb_app_m.c:60:14:eMBMasterRegInputCB	32	static
+../FreeModbus/Src/user_mb_app_m.c:107:14:eMBMasterRegHoldingCB	40	static
+../FreeModbus/Src/user_mb_app_m.c:172:14:eMBMasterRegCoilsCB	56	static
+../FreeModbus/Src/user_mb_app_m.c:252:14:eMBMasterRegDiscreteCB	48	static
