@@ -62,11 +62,14 @@
 #define DEVICE_STATUS_REG (DEVICE_ALARM_REG +1)
 #define REGISTER_COUNT ( DEVICE_STATUS_REG +1)
 
-#define DOOR_ALARM       1
-#define REMOTE_FLAG 	 1
-#define FIRE_FLAG   	 2
-#define LOCAL_FLAG  	 3
-#define REMOTE_ACT_FLAG  4
+#define DOOR_ALARM        1
+#define REMOTE_FLAG 	  1
+#define FIRE_FLAG   	  2
+#define LOCAL_FLAG  	  2
+#define REMOTE_ACT_FLAG   3
+#define ALARM_OUT_FLAG	  4
+#define LOCAL_OUT_FLAG	  5
+#define WORK_OUT_FLAG     6
 
 #define FIRST_REGISTER_ADDR    0
 #define FIRST_EEPROM_REG_ADDR  0

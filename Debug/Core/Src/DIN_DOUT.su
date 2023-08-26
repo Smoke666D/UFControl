@@ -3,9 +3,10 @@
 ../Core/Src/DIN_DOUT.c:37:6:RegisteDATALoadInit	8	static
 ../Core/Src/DIN_DOUT.c:42:16:RegisterDATALoad	24	static
 ../Core/Src/DIN_DOUT.c:99:6:HAL_SPI_RxCpltCallback	16	static,ignoring_inline_asm
-../Core/Src/DIN_DOUT.c:126:22:eDinConfig	48	static
-../Core/Src/DIN_DOUT.c:151:13:vDINInit	8	static
-../Core/Src/DIN_DOUT.c:161:6:StartDIN_DOUT	32	static
-../Core/Src/DIN_DOUT.c:221:6:vSetupKeyboard	16	static
-../Core/Src/DIN_DOUT.c:228:15:pGetKeyboardQueue	4	static
-../Core/Src/DIN_DOUT.c:234:6:vKeyboardTask	40	static
+../Core/Src/DIN_DOUT.c:142:22:eDinConfig	48	static
+../Core/Src/DIN_DOUT.c:167:13:vDINInit	8	static
+../Core/Src/DIN_DOUT.c:177:13:vSetOut	16	static
+../Core/Src/DIN_DOUT.c:183:6:StartDIN_DOUT	40	static
+../Core/Src/DIN_DOUT.c:249:6:vSetupKeyboard	16	static
+../Core/Src/DIN_DOUT.c:256:15:pGetKeyboardQueue	4	static
+../Core/Src/DIN_DOUT.c:262:6:vKeyboardTask	40	static

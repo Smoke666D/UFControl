@@ -16,6 +16,7 @@
 #define KEY_CHANNEL  4
 #define DIN_CHANNEL  9
 #define DIN_COUNT    (DIN_CHANNEL - KEY_CHANNEL)
+#define DOUT_CHANNEL  7
 
 #define DEF_H_FRONT 10U
 #define DEF_L_FRONT 10U

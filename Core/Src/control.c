@@ -30,6 +30,15 @@ void StartControlTask(void *argument)
 				}
 				break;
 			case CONTROLLER_WORK:
+				if (uGetRegister(DEVICE_ALARM_REG)  )
+				{
+					state = CONTROLLER_ALARM;
+				}
+				break;
+			case CONTROLLER_ALARM:
+				vSetRegisterBit(DEVICE_STATUS_REG, WORK_OUT_FLAG,  0);
+				vSetRegisterBit(DEVICE_STATUS_REG, ALARM_OUT_FLAG, 1);
+				vSetRegisterBit(DEVICE_STATUS_REG, LOCAL_OUT_FLAG, 0);
 				break;
 			case CONTROLLER_REINIT:
 				break;

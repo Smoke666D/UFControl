@@ -119,6 +119,22 @@ const  PIN_CONFIG xDinPortConfig[DIN_CHANNEL]= {
 };
 
 
+#define POW1	   0
+#define POW2	   1
+#define POW_OUT	   2
+#define POW_ON	   6
+#define ALARM_OUT  3
+#define ALARM_LAMP 4
+#define LOCAL_LAMP 5
+const PIN_CONFIG xDoutPortConfig[DOUT_CHANNEL] = {
+		{POW_OUT1_Pin,POW_OUT1_GPIO_Port},
+		{POW_OUT2_Pin,POW_OUT2_GPIO_Port},
+		{Relay_Work_Pin,Relay_Work_Pin},
+		{Relay_Crash_Pin,Relay_Crash_GPIO_Port},
+		{LedR_FBO_accident_Pin,LedR_FBO_accident_Pin},
+		{LedY_Local_Control_Pin,LedY_Local_Control_GPIO_Port},
+		{LedG_FBO_ON_Pin,LedG_FBO_ON_GPIO_Port},
+};
 
 
 static DinConfig_t xDinConfig[ DIN_COUNT];
@@ -158,6 +174,12 @@ static void vDINInit()
 	PL_SET();
 }
 
+static void vSetOut( uint8_t out, uint8_t state)
+{
+	HAL_GPIO_WritePin(xDoutPortConfig[out].GPIOx,xDoutPortConfig[out].Pin, state!=0 ? GPIO_PIN_SET:GPIO_PIN_RESET);
+	return;
+}
+
 void StartDIN_DOUT(void *argument)
 {
 	EventGroupHandle_t system_event = NULL;
@@ -165,9 +187,7 @@ void StartDIN_DOUT(void *argument)
 	vDINInit();
 	while(1)
 	{
-
 		vTaskDelay(10);
-
 		for (uint8_t i = 0; i <DIN_COUNT; i++)
 		{
 				if ( xDinConfig[i].eInputType != RPM_CONFIG )
@@ -196,8 +216,8 @@ void StartDIN_DOUT(void *argument)
 			vSetRegister(LAM_ERROR_REG_MSB, bdata);
 		}
 		vSetRegisterBit(DEVICE_ALARM_REG, DOOR_ALARM ,  (uint16_t)xDinConfig[DOOR].ucValue );
+		vSetRegisterBit(DEVICE_ALARM_REG,FIRE_FLAG, (uint16_t)xDinConfig[FIRE].ucValue);
 		vSetRegisterBit(DEVICE_STATUS_REG,REMOTE_FLAG,(uint16_t)xDinConfig[REMOTE].ucValue);
-		vSetRegisterBit(DEVICE_STATUS_REG,FIRE_FLAG, (uint16_t)xDinConfig[FIRE].ucValue);
 		vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_FLAG, (uint16_t) xDinConfig[LOCAL_C].ucValue);
 		vSetRegisterBit(DEVICE_STATUS_REG, REMOTE_ACT_FLAG, (uint16_t)xDinConfig[REMOTE_ACT].ucValue);
 		if ( init_state == 0 )
@@ -205,6 +225,14 @@ void StartDIN_DOUT(void *argument)
 			init_state = 1;
 			xEventGroupSetBits(system_event,   DIN_SYSTEM_READY);
 		}
+		uint32_t status = uGetRegister(DEVICE_STATUS_REG);
+		vSetOut(ALARM_OUT, status & (0x01<<ALARM_OUT_FLAG) );
+		vSetOut(ALARM_LAMP, status & (0x01<<ALARM_OUT_FLAG) );
+		vSetOut(POW1, status & (0x01<<WORK_OUT_FLAG ) );
+		vSetOut(POW2, status & (0x01<<WORK_OUT_FLAG ) );
+		vSetOut(POW_OUT, status & (0x01<<WORK_OUT_FLAG ) );
+		vSetOut(POW_ON, status & (0x01<<WORK_OUT_FLAG ) );
+		vSetOut(LOCAL_LAMP, status & (0x01<<LOCAL_OUT_FLAG) );
 	}
 
 }
