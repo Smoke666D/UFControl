@@ -234,7 +234,7 @@ static char * getBufRef( uint8_t ID)
 
 void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID, char * format )
 {
-   switch (cmd)
+   /*switch (cmd)
    {
    	   	   case mREAD:
    	   		   if (DATA_MODEL_DATA[ID]->mode != CONFIG_READ)
@@ -255,7 +255,7 @@ void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID, char * form
    	   	   case mDEC:
    	   		   vDecData( ID );
    	   		   break;
-   }
+   }*/
 }
 
 

@@ -11,14 +11,15 @@
 
 #define MAX_CHAR  40
 static uint8_t LCD_BUFFER[MAX_CHAR];
-static uint8_t LCD_OUT_BUFFER[LED_STRING_LEN ];
+static uint8_t LCD_OUT_BUFFER[ MAX_CHAR  ];
 static IDICATOR_STRING_BUFFER LCD_DATA_CHNGE = NO_CHANGE;
-static EventGroupHandle_t lcdFlags;
+
 static uint32_t local_period = 40;
 static uint8_t cursor_pos = 0;
 static uint8_t cur_cursor_pos = 0;
 extern TIM_HandleTypeDef htim7;
-
+static   EventGroupHandle_t lcdFlags;
+static   StaticEventGroup_t lcdFlagCreatedEventGroup;
 
 const unsigned char russian[]={ 0x41, 0xA0, 0x42, 0xA1, 0xE0, 0x45,
 0xA3, 0xA4, 0xA5,0xA6, 0x4B, 0xA7, 0x4D, 0x48, 0x4F, 0xA8, 0x50,0x43,
@@ -44,16 +45,26 @@ void ClearScreenBuffer()
 void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y)
 {
  uint8_t k = 0;
- for (uint8_t i = pos_x*pos_y;i< MAX_CHAR;i++)
+
+ uint8_t Data[20];
+ convertUtf8ToCp1251(data,Data);
+ volatile char temp;
+ for (uint8_t i = (pos_x+ (pos_y*20));i< MAX_CHAR;i++)
  {
-	 if (data[k]!=0)
+	 if (Data[k] !=0)
 	 {
-		 if (data[k]!=LCD_BUFFER[i])
+		 if (Data[k] >=192)
+			temp = russian[Data[k] -192];
+		 else
 		 {
-			 LCD_DATA_CHNGE |= (i >20)?DOWN_STRING:UP_STRING;
-		     LCD_BUFFER[i] = (data[k]>='А') ?  russian[data[k]-'А'] : data[k];
-			 k++;
+			 if (Data[k]=='|') 			 temp = 0xB5;
+			 else
+				temp = Data[k];
+
 		 }
+	      LCD_DATA_CHNGE |= (i >20)?DOWN_STRING:UP_STRING;
+		  LCD_BUFFER[i] = temp ;
+		  k++;
 	 }
 	 else
 	 {
@@ -81,15 +92,31 @@ void LCD_Cursor_Off()
 
 static void WriteByte( uint8_t data)
 {
-	uint16_t buf_port =(uint16_t) LCD_0_GPIO_Port->ODR;
-	buf_port = buf_port & 0xF0;
-	buf_port = buf_port | data;
-	LCD_0_GPIO_Port->ODR = buf_port;
+	/*GPIO_InitTypeDef GPIO_InitStruct = {0};
+	 GPIO_InitStruct.Pin = LCD_0_Pin|LCD_1_Pin|LCD_2_Pin | LCD_3_Pin|LCD_4_Pin
+	                          |LCD_5_Pin|LCD_6_Pin|LCD_7_Pin;
+	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+*/
+
+	LCD_0_GPIO_Port->ODR = (LCD_0_GPIO_Port->ODR & 0xFF00) | data;
 }
 
 static void ReadByte (uint8_t * pData)
 {
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	 GPIO_InitStruct.Pin = LCD_0_Pin|LCD_1_Pin|LCD_2_Pin | LCD_3_Pin|LCD_4_Pin
+	                          |LCD_5_Pin|LCD_6_Pin|LCD_7_Pin;
+	  GPIO_InitStruct.Mode = GPIO_MODE_INPUT ;
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 	*pData = (uint16_t) LCD_0_GPIO_Port->ODR & 0x0F;
+	 GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	 HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 static void DelayUS( uint16_t value)
@@ -104,7 +131,7 @@ static void DelayUS( uint16_t value)
 static void Strob()
 {
 	SET_E;
-	DelayUS(1);
+	DelayUS(3);
 	RESET_E;
 }
 
@@ -115,49 +142,130 @@ static void LCD_SendCommand(uint8_t command)
 	RESET_E;
 	WriteByte( command);
 	Strob();
-	DelayUS(40);
+	DelayUS(45);
 }
 
-static void LCD_SendData(uint8_t data)
+static void LCD_SendData	(uint8_t data)
 {
 	SET_RS;
 	RESET_RW;
 	RESET_E;
 	WriteByte( data);
 	Strob();
-	DelayUS(40);
+	DelayUS(50);
+}
+
+static uint8_t ReadByt()
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+		 GPIO_InitStruct.Pin = LCD_0_Pin|LCD_1_Pin|LCD_2_Pin | LCD_3_Pin|LCD_4_Pin
+		                          |LCD_5_Pin|LCD_6_Pin|LCD_7_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_INPUT ;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	RESET_RS;
+	SET_RW;
+	//Strob();
+	SET_E;
+	DelayUS(10);
+	uint8_t data = HAL_GPIO_ReadPin(GPIOB,LCD_7_Pin)<<7 |
+			HAL_GPIO_ReadPin(GPIOB,LCD_6_Pin)<<6 |
+			 HAL_GPIO_ReadPin(GPIOB,LCD_5_Pin)<<5 |
+			HAL_GPIO_ReadPin(GPIOB,LCD_4_Pin)<<4 |
+			 HAL_GPIO_ReadPin(GPIOB,LCD_3_Pin)<<3 |
+			 HAL_GPIO_ReadPin(GPIOB,LCD_2_Pin)<<2 |
+			 HAL_GPIO_ReadPin(GPIOB,LCD_1_Pin)<<1 |
+			 HAL_GPIO_ReadPin(GPIOB,LCD_0_Pin) ;
+	RESET_E;
+	 GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		 HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	return (uint8_t) data ;
+
 }
 
 void Init16X2LCD()
 {
-	osDelay(40);
-	LCD_SendCommand(LCD_FUNSTION_SET  | DB_4);
+	volatile uint8_t temp;
+	lcdFlags= xEventGroupCreateStatic(&lcdFlagCreatedEventGroup );
+	HAL_GPIO_WritePin(Ind_LED_GPIO_Port,Ind_LED_Pin, GPIO_PIN_SET);
+	RESET_E;
+	osDelay(100);
+	LCD_SendCommand(LCD_FUNSTION_SET  | DB_4 );
+	osDelay(6);
+	LCD_SendCommand(LCD_FUNSTION_SET  | DB_4 );
+	osDelay(1);
+	LCD_SendCommand(LCD_FUNSTION_SET  | DB_4 );
+	osDelay(1);
+	LCD_SendCommand(LCD_FUNSTION_SET  | DB_4| DB_3  | DB_2 );
+	LCD_SendCommand(LCD_CLEAR );
+	LCD_SendCommand(LCD_ON_OFF  | DB_2 );
+
+	osDelay(10);
+	LCD_SendCommand(LCD_ENTRY_MODE_SET | DB_1 );
+	LCD_SendCommand(LCD_CURRSOR_SHIFT| DB_3 | DB_2);
 }
+
 
 
 
 void vRedrawLCD()
 {
+    uint8_t ddd[20];
 	EventBits_t redraw_flags;
+
 	redraw_flags = xEventGroupWaitBits(lcdFlags, UP_STRING | DOWN_STRING ,pdTRUE,pdFALSE,0);
 	if (redraw_flags & UP_STRING )
 	{
-		memcpy(LCD_OUT_BUFFER,LCD_BUFFER,LED_STRING_LEN);
-		LCD_SendCommand(0x80);  //Устаналвиаем адрес в начало верхней строки
-		for (uint8_t i = 0;i< LED_STRING_LEN;i++)
+		memcpy(ddd,LCD_BUFFER,LED_STRING_LEN);
+		for (uint8_t i = 0;i < LED_STRING_LEN;i++)
 		{
-			LCD_SendData(LCD_OUT_BUFFER[i]);
+			if (ddd[i]!=LCD_OUT_BUFFER[i])
+			{
+
+				LCD_SendCommand(0x80 |  i);
+				if (i==0)
+					{
+					LCD_SendCommand(LCD_RETURN_HOME);
+					vTaskDelay(2);
+					}
+				else
+					LCD_SendCommand(0x80 | i);
+				if (ddd[i] == 0)
+				{
+					LCD_SendData(0x20);
+				}
+				else
+				{
+					LCD_SendData(ddd[i]);
+				}
+			}
 		}
+		memcpy(LCD_OUT_BUFFER,LCD_BUFFER,LED_STRING_LEN);
 	}
 	if (redraw_flags & DOWN_STRING )
 	{
-		memcpy(LCD_OUT_BUFFER,&LCD_BUFFER[LED_STRING_LEN ],LED_STRING_LEN);
-		LCD_SendCommand(0x80 | 0x40);  //Устаналвиаем адрес в начало нижней строки
+		memcpy(ddd,&LCD_BUFFER[LED_STRING_LEN ],LED_STRING_LEN);
+
 		for (uint8_t i = 0;i< LED_STRING_LEN;i++)
 		{
-			LCD_SendData(LCD_OUT_BUFFER[i]);
+			if (ddd[i]!=LCD_OUT_BUFFER[i+ LED_STRING_LEN])
+			{
+				LCD_SendCommand(0x80 | 0x40 | i);
+				if (ddd[i] == 0)
+				{
+					LCD_SendData(0x20);
+				}
+				else
+				{
+					LCD_SendData(ddd[i]);
+				}
+			}
 		}
+		memcpy(&LCD_OUT_BUFFER[LED_STRING_LEN ],&LCD_BUFFER[LED_STRING_LEN ],LED_STRING_LEN);
 	}
+
+
 }
 /*
  * Таск перерисовывет данные на LCD

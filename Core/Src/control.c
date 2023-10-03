@@ -24,8 +24,8 @@ void StartControlTask(void *argument)
 				if (system_event !=NULL)
 				{
 					vInitRegister();
-					xEventGroupWaitBits(system_event,   REGISTER_SYSTEM_READY | DIN_SYSTEM_READY,  pdTRUE, pdTRUE, portMAX_DELAY );
-					xEventGroupSetBits(system_event, WORK_READY);
+					//xEventGroupWaitBits(system_event,   REGISTER_SYSTEM_READY | DIN_SYSTEM_READY,  pdTRUE, pdTRUE, portMAX_DELAY );
+					//xEventGroupSetBits(system_event, WORK_READY);
 					state = CONTROLLER_WORK;
 				}
 				break;
@@ -34,11 +34,44 @@ void StartControlTask(void *argument)
 				{
 					state = CONTROLLER_ALARM;
 				}
+				else
+				{
+					vSetRegisterBit(DEVICE_STATUS_REG,ALARM_OUT_FLAG, 0);
+					if (  getRegisterBit(DEVICE_STATUS_REG, LOCAL_FLAG) != 0 )
+					{
+						vSetRegisterBit(DEVICE_STATUS_REG,WORK_OUT_FLAG, 1);
+						vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_OUT_FLAG, 1);
+						break;
+					}
+					if (getRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG )!=0)
+					{
+						vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_OUT_FLAG, 0);
+						if (getRegisterBit(DEVICE_STATUS_REG, SCADA_FLAG) == 0)
+						{
+							vSetRegisterBit(DEVICE_STATUS_REG,WORK_OUT_FLAG, getRegisterBit(DEVICE_STATUS_REG, REMOTE_ACT_FLAG ) !=0 ? 1: 0);
+						}
+						else
+						{
+							vSetRegisterBit(DEVICE_STATUS_REG,WORK_OUT_FLAG, getRegisterBit(DEVICE_STATUS_REG, SCADA_ON_FLAG ) !=0 ? 1: 0);
+						}
+						break;
+					}
+					if ( (getRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG )==0) && 	(  getRegisterBit(DEVICE_STATUS_REG, LOCAL_FLAG) == 0 ))
+					{
+						vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_OUT_FLAG, 0);
+						vSetRegisterBit(DEVICE_STATUS_REG,WORK_OUT_FLAG, 0);
+					}
+				}
 				break;
 			case CONTROLLER_ALARM:
+				if (uGetRegister(DEVICE_ALARM_REG)  == 0 )
+				{
+						state = CONTROLLER_WORK;
+				}
 				vSetRegisterBit(DEVICE_STATUS_REG, WORK_OUT_FLAG,  0);
 				vSetRegisterBit(DEVICE_STATUS_REG, ALARM_OUT_FLAG, 1);
 				vSetRegisterBit(DEVICE_STATUS_REG, LOCAL_OUT_FLAG, 0);
+
 				break;
 			case CONTROLLER_REINIT:
 				break;

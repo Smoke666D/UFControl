@@ -113,7 +113,7 @@ EventGroupHandle_t xGetSystemUpdateEvent();
 #define EN485_Pin GPIO_PIN_8
 #define EN485_GPIO_Port GPIOA
 #define LedR_FBO_accident_Pin GPIO_PIN_10
-#define LedR_FBO_accident_GPIO_PortedR_FBO_accident_GPIO_Port GPIOC
+#define LedR_FBO_accident_GPIO_Port GPIOC
 #define LedY_Local_Control_Pin GPIO_PIN_11
 #define LedY_Local_Control_GPIO_Port GPIOC
 #define LedG_FBO_ON_Pin GPIO_PIN_12

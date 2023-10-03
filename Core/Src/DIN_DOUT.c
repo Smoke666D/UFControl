@@ -17,11 +17,11 @@ static   EventGroupHandle_t pREGEvent;
 static   StaticEventGroup_t xREGCreatedEventGroup;
 void PL_SET()
 {
-
+	HAL_GPIO_WritePin(LampNPL_GPIO_Port,LampNPL_Pin, GPIO_PIN_SET);
 }
-void PL_RESER()
+void PL_RESET()
 {
-
+	HAL_GPIO_WritePin(LampNPL_GPIO_Port,LampNPL_Pin, GPIO_PIN_RESET);
 }
 
 #define DATA_LOAD_READY 0x01
@@ -33,6 +33,18 @@ uint8_t data_check_counter = 0;
 uint8_t data[6];
 uint8_t mask[6][DATA_VALID_TIMES];
 uint8_t dc_mask[6];
+
+
+
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+{
+	hspi->ErrorCode = HAL_SPI_ERROR_NONE;
+	 static portBASE_TYPE xHigherPriorityTaskWoken;
+		 xHigherPriorityTaskWoken = pdFALSE;
+		 xEventGroupSetBitsFromISR( pREGEvent, DATA_LOAD_READY, &xHigherPriorityTaskWoken );
+		 portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+		 return;
+}
 
 void RegisteDATALoadInit()
 {
@@ -46,17 +58,17 @@ static uint8_t RegisterDATALoad()
 	switch (PL_STATE)
 	{
 		case 0:
-			//PL_RESET();
+			PL_RESET();
 			PL_STATE = 1;
 			if (data_check_counter >= DATA_VALID_TIMES)
 			{
 				data_check_counter = 0;
 				for (i=0;i<6;i++)
 				{
-					    dc_mask[0 ] = mask[i][0];
+					    dc_mask[i ] = mask[i][0];
 						for (j=1 ;j<DATA_VALID_TIMES;j++)
 						{
-							dc_mask[0 ] &= mask[i][j];
+							dc_mask[i ] &= mask[i][j];
 						}
 				}
 				for (i=0;i<6;i++)
@@ -88,7 +100,6 @@ static uint8_t RegisterDATALoad()
 
 			}
 			data_check_counter++;
-
 			break;
 
 
@@ -107,11 +118,11 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 }
 
 const  PIN_CONFIG xDinPortConfig[DIN_CHANNEL]= {
-												//{nDOOR_Sens_Pin,nDOOR_Sens_GPIO_Port},
-												//{nRemoteActivate_Pin,nRemoteActivate_GPIO_Port},
-											//	{FireAlarm_Pin,FireAlarm_GPIO_Port},
-											////	{Local_Pin,Local_GPIO_Port},
-											//	{Remote_Pin,Remote_GPIO_Port},
+												{nDOOR_sens_Pin,nDOOR_sens_GPIO_Port},
+												{nRemote_activatio_Pin,nRemote_activatio_GPIO_Port},
+												{Fire_alarm_Pin,Fire_alarm_GPIO_Port},
+												{local_Pin,local_GPIO_Port},
+												{remote_Pin,remote_GPIO_Port},
 												{KL1_Pin,KL1_GPIO_Port},
 												{KL2_Pin,KL2_GPIO_Port},
 												{KL3_Pin,KL3_GPIO_Port},
@@ -129,9 +140,9 @@ const  PIN_CONFIG xDinPortConfig[DIN_CHANNEL]= {
 const PIN_CONFIG xDoutPortConfig[DOUT_CHANNEL] = {
 		{POW_OUT1_Pin,POW_OUT1_GPIO_Port},
 		{POW_OUT2_Pin,POW_OUT2_GPIO_Port},
-		{Relay_Work_Pin,Relay_Work_Pin},
+		{Relay_Work_Pin,Relay_Work_GPIO_Port},
 		{Relay_Crash_Pin,Relay_Crash_GPIO_Port},
-		{LedR_FBO_accident_Pin,LedR_FBO_accident_Pin},
+		{LedR_FBO_accident_Pin,LedR_FBO_accident_GPIO_Port},
 		{LedY_Local_Control_Pin,LedY_Local_Control_GPIO_Port},
 		{LedG_FBO_ON_Pin,LedG_FBO_ON_GPIO_Port},
 };
@@ -166,6 +177,7 @@ DIN_FUNCTION_ERROR_t eDinConfig( uint8_t ucCh, DIN_INPUT_TYPE inType, uint32_t u
 
 static void vDINInit()
 {
+	RegisteDATALoadInit();
 	eDinConfig( INPUT_1, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_2, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_3, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
@@ -210,21 +222,28 @@ void StartDIN_DOUT(void *argument)
 		}
 		if   (RegisterDATALoad() == 1)
 		{
-			uint32_t bdata = data[0] | data[1]<<8 | (data[2] & 0x3F)<<16;
-			vSetRegister(LAM_ERROR_REG_LSB, bdata);
-		    bdata = data[2]>>6 | data[3]<<10 | (data[4] & 0x3F)<<18 | data[5];
-			vSetRegister(LAM_ERROR_REG_MSB, bdata);
+			uint32_t bdata = data[5] | data[4]<<8 | (data[3] & 0x3F)<<16;
+			vSetRegister(LAM_ERROR_REG_LSB, ~bdata & 0x003FFFFF);
+		    bdata = data[3]>>6 | data[1]<<10 | (data[0] & 0x0F)<<18 | data[2] <<2;
+			vSetRegister(LAM_ERROR_REG_MSB, ~bdata & 0x003FFFFF);
+
 		}
-		vSetRegisterBit(DEVICE_ALARM_REG, DOOR_ALARM ,  (uint16_t)xDinConfig[DOOR].ucValue );
-		vSetRegisterBit(DEVICE_ALARM_REG,FIRE_FLAG, (uint16_t)xDinConfig[FIRE].ucValue);
-		vSetRegisterBit(DEVICE_STATUS_REG,REMOTE_FLAG,(uint16_t)xDinConfig[REMOTE].ucValue);
-		vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_FLAG, (uint16_t) xDinConfig[LOCAL_C].ucValue);
+		vSetRegisterBit(DEVICE_ALARM_REG,  DOOR_ALARM ,     (uint16_t)xDinConfig[DOOR].ucValue );
+		vSetRegInputBit(INPUT_STATUS,      MB_DOOR_ALARM,   (uint16_t)xDinConfig[DOOR].ucValue );
+		vSetRegisterBit(DEVICE_ALARM_REG,  FIRE_FLAG,       (uint16_t)xDinConfig[FIRE].ucValue);
+		vSetRegInputBit(INPUT_STATUS,      MB_FIRE_ALARM,   (uint16_t)xDinConfig[DOOR].ucValue );
+		vSetRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG,     (uint16_t)xDinConfig[REMOTE].ucValue);
+		vSetRegInputBit(INPUT_STATUS,      MB_REMOTE_FLAG,   (uint16_t)xDinConfig[DOOR].ucValue );
+		vSetRegisterBit(DEVICE_STATUS_REG, LOCAL_FLAG,      (uint16_t) xDinConfig[LOCAL_C].ucValue);
+		vSetRegInputBit(INPUT_STATUS,      MB_LOCAL_FLAG,   (uint16_t)xDinConfig[DOOR].ucValue );
 		vSetRegisterBit(DEVICE_STATUS_REG, REMOTE_ACT_FLAG, (uint16_t)xDinConfig[REMOTE_ACT].ucValue);
-		if ( init_state == 0 )
+		vSetRegInputBit(INPUT_STATUS,      MB_REMOTE_ACT,   (uint16_t)xDinConfig[DOOR].ucValue );
+		/*if ( init_state == 0 )
 		{
 			init_state = 1;
 			xEventGroupSetBits(system_event,   DIN_SYSTEM_READY);
-		}
+		}*/
+		//управление выходами
 		uint32_t status = uGetRegister(DEVICE_STATUS_REG);
 		vSetOut(ALARM_OUT, status & (0x01<<ALARM_OUT_FLAG) );
 		vSetOut(ALARM_LAMP, status & (0x01<<ALARM_OUT_FLAG) );
@@ -232,7 +251,9 @@ void StartDIN_DOUT(void *argument)
 		vSetOut(POW2, status & (0x01<<WORK_OUT_FLAG ) );
 		vSetOut(POW_OUT, status & (0x01<<WORK_OUT_FLAG ) );
 		vSetOut(POW_ON, status & (0x01<<WORK_OUT_FLAG ) );
-		vSetOut(LOCAL_LAMP, status & (0x01<<LOCAL_OUT_FLAG) );
+		vSetOut(LOCAL_LAMP, status & (0x01<<LOCAL_FLAG) );
+
+
 	}
 
 }

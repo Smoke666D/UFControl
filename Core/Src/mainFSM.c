@@ -9,6 +9,23 @@ uint16_t usGetRegInput( REGS_t reg_addr)
     usRes = input_regs[reg_addr];
 	return  (usRes);
 }
+void vSetRegInput(REGS_t reg_addr, uint16_t data )
+{
+	if (reg_addr < REG_COUNT)
+	{
+		input_regs[reg_addr] = data;
+	}
+}
+void vSetRegInputBit(REGS_t reg_addr,uint16_t offset,  uint16_t data )
+{
+	if ( reg_addr < REG_COUNT )
+		{
+			if (data != 0)
+				input_regs[reg_addr]  |= 0x1 << offset;
+			else
+				input_regs[reg_addr]  &= ~(0x1 << offset);
+		}
+}
 void vUPDATECoils( uint8_t rw)
 {
 
@@ -50,7 +67,6 @@ void StartMb(void *argument)
      while (1)
      {
 		 eMBPoll();
-
 		 vTaskDelay(10);
 	 }
 }

@@ -17,9 +17,13 @@ static xScreenObjet*     pCurDrawScreen   = NULL;
 static uint8_t cur_cursor_owener  = 0;
 static uint8_t key_ready = 0;
 static uint8_t enter_count = 0;
+static QueueHandle_t     pKeyboard        = NULL;
 void vMenuInit()
 {
-	//pCurrMenu = &xMainMenu;
+	Init16X2LCD();
+	pCurrMenu = &xMainMenu;
+	vSetupKeyboard();
+	pKeyboard  = pGetKeyboardQueue();
 }
 
 void vDrawObject( xScreenSetObject* menu)
@@ -38,7 +42,7 @@ void vDrawObject( xScreenSetObject* menu)
   uint8_t  ListCount = 0;
 
   //Проверяем состояние экрна. Если экран изменлися или изменилась строка вывода, то надо пперерисовать экраа
-  if ( ( pCurDrawScreen != pScreenObjects )
+  /*if ( ( pCurDrawScreen != pScreenObjects )
 	  && ( pCurrMenu->pHomeMenu[pCurrMenu->pCurrIndex].CurLine != current_line )
 		  && (pCurrMenu->pHomeMenu[pCurrMenu->pCurrIndex].CursorOwener!= cur_cursor_owener ) )//Если экран изменился
   {
@@ -47,7 +51,7 @@ void vDrawObject( xScreenSetObject* menu)
     cur_cursor_owener  = pCurrMenu->pHomeMenu[pCurrMenu->pCurrIndex].CursorOwener;
     Redraw         = 1U;
   }
-  else                     //Если тот же самый экран
+  else*/                     //Если тот же самый экран
   {
     for (uint8_t i=0U; i<MAX_SCREEN_OBJECT; i++ ) //Проверяем есть ли на экране динамические объекты
     {
@@ -74,17 +78,16 @@ void vDrawObject( xScreenSetObject* menu)
 
     for (uint8_t  i=0U; i<MAX_SCREEN_OBJECT; i++ )
     {
-    	if (( pScreenObjects[i].y == pCurrMenu->pHomeMenu[pCurrMenu->pCurrIndex].CurLine) ||
-    			( pScreenObjects[i].y == pCurrMenu->pHomeMenu[pCurrMenu->pCurrIndex].CurLine +1))
-    	{
+
     		switch ( pScreenObjects[i].xType )
     		{
     		 	 //Если текущий объект - строка
     		     case TEXT_STRING:
     		        	TEXT = pScreenObjects[i].pStringParametr;
-    		        	LCD_SetStringDrawUTF8( TEXT, pScreenObjects[i].x, pScreenObjects[i].y );
+    		        	LCD_SetString(TEXT, pScreenObjects[i].x, pScreenObjects[i].y );
+    		        	//LCD_SetStringDrawUTF8( TEXT, pScreenObjects[i].x, pScreenObjects[i].y );
     		        	break;
-    		     case CURSOR:
+    		    /* case CURSOR:
     		    	 	 Text[0] = ' ';
     		    	     Text[1] = 0;
     		    	 	 if (CursorPos == cur_cursor_owener)
@@ -97,7 +100,7 @@ void vDrawObject( xScreenSetObject* menu)
     		     case LIST_DATA: /*Вывод данных списка
     		     	 	 функции вывода передаем в качестве парамерта текущие значение курсора
     		    	    */
-    		    	    pScreenObjects[i].GetDtaFunction( mREAD, &Text, pScreenObjects[i].DataID, cur_cursor_owener + ListCount );
+    		    	 /*   pScreenObjects[i].GetDtaFunction( mREAD, &Text, pScreenObjects[i].DataID, cur_cursor_owener + ListCount );
     		    	    TEXT = Text;
     		    	    if ((++ListCount == 2) && Text[0] == 0)
     		    	    {
@@ -106,13 +109,14 @@ void vDrawObject( xScreenSetObject* menu)
     		    	    		pCurrMenu->pHomeMenu[pCurrMenu->pCurrIndex].CursorOwener--;
     		    	    	}
     		    	    }
-    		    	    LCD_SetStringDrawUTF8( TEXT, pScreenObjects[i].x, pScreenObjects[i].y );
-    		     case EDIT_DATA_NUM:
+    		    	    LCD_SetStringDrawUTF8( TEXT, pScreenObjects[i].x, pScreenObjects[i].y );*?\/
+    		   /*  case EDIT_DATA_NUM:
     		    	    pScreenObjects[i].GetDtaFunction( mREAD, &Text, pScreenObjects[i].DataID , pScreenObjects[i].pStringParametr);
     		    	    TEXT = Text;
-    		    	    break;
+    		    	    break;*/
+    		     default: break;
     		}
-    	}
+
 
    //   Insert = 0U;
    /*   switch ( pScreenObjects[i].xType )
@@ -230,7 +234,7 @@ void vGetDataForList( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID, uint8_t ind
 
 void vListScreenCallBack ( xScreenSetObject* menu, char key )
 {
-	   switch ( key )
+	 /*  switch ( key )
 	   {
 		     case KEY_UP:
 		       		  if (menu->pHomeMenu[menu->pCurrIndex].CursorOwener > 0 )
@@ -247,7 +251,7 @@ void vListScreenCallBack ( xScreenSetObject* menu, char key )
 		     defualt:
 
 		    	 break;
-	   }
+	   }*/
 }
 
 //Объект редактирования
@@ -330,7 +334,7 @@ static uint8_t getObjectIndex()
 
 void vDataScreenCallBack ( xScreenSetObject* menu, char key )
 {
-	   switch ( key )
+	 /*  switch ( key )
 	   {
 		     case KEY_UP:
 		    	// edit_mode = 1;
@@ -371,12 +375,12 @@ void vDataScreenCallBack ( xScreenSetObject* menu, char key )
 		    	 break;
 		     default:
 		    	 break;
-	   }
+	   }*/
 }
 
 void xCommonScreenCallBack ( xScreenSetObject* menu, char key )
 {
-	switch (menu->pHomeMenu[menu->pCurrIndex].scteen_type)
+	/*switch (menu->pHomeMenu[menu->pCurrIndex].scteen_type)
     {
 				case DATA_SCREEN:
 	       		  if ( key == KEY_EXIT)
@@ -397,7 +401,7 @@ void xCommonScreenCallBack ( xScreenSetObject* menu, char key )
 	       	   default:
 	       		    break;
 	   }
-
+*/
 }
 
 
@@ -405,100 +409,121 @@ void xCommonScreenCallBack ( xScreenSetObject* menu, char key )
 
 void vMenuScreenCallBack ( xScreenSetObject* menu, char key , uint8_t inc_index)
 {
-   switch ( key )
-   {
-	     case KEY_UP:
-	       		   if (menu->pHomeMenu[menu->pCurrIndex].CursorOwener > 0 )
-	       		   			 menu->pHomeMenu[menu->pCurrIndex].CursorOwener-=inc_index;
-	       		   if (menu->pHomeMenu[menu->pCurrIndex].CurLine > 0 )
-	       		   	    	 menu->pHomeMenu[menu->pCurrIndex].CurLine-=inc_index;
-	       		    break;
-	     case KEY_DOWN:
-	       		  if ( menu->pHomeMenu[menu->pCurrIndex].CursorOwener <
-	       		   				  menu->pHomeMenu[menu->pCurrIndex].MaxCursorObject)
-	       		   			  menu->pHomeMenu[menu->pCurrIndex].CursorOwener+=inc_index;;
-	       		   if (menu->pHomeMenu[menu->pCurrIndex].CurLine < ( menu->pHomeMenu[menu->pCurrIndex].MaxLineNumber -1 ) )
-	       		   	         menu->pHomeMenu[menu->pCurrIndex].CurLine+=inc_index;
-	       		  break;
-	     case KEY_EXIT:
-	    	 menu->pHomeMenu[menu->pCurrIndex].CurLine = 0;
-	    	 menu->pHomeMenu[menu->pCurrIndex].CursorOwener = 0;
-	    	 pCurrMenu = menu->pHomeMenu[menu->pCurrIndex].pUpScreenSet;
-	    	 break;
-	     case KEY_ENTER:
-	    	 if (menu->pHomeMenu[menu->pCurrIndex].pDownScreenSet!=NULL)
-	    	 {
-	    		 pCurrMenu = menu->pHomeMenu[menu->pCurrIndex].pDownScreenSet;
-	    		 pCurrMenu->pCurrIndex = menu->pHomeMenu[menu->pCurrIndex].CursorOwener;
-	    	 }
-	    	 break;
-   }
+
   return;
 }
 #define UP_KEY_READY 0x01
 #define DOWN_KEY_READY 0x02
+static FLAG              fDownScreen      = FLAG_RESET;
+
+static KeyEvent          TempEvent        = { 0U };
+static KeyEvent          BufferEvent      = { 0U };
 
 void xMainScreenCallBack ( xScreenSetObject* menu, char key )
 {
-       switch (menu->pHomeMenu[menu->pCurrIndex].scteen_type)
-       {
-       	   case DATA_SCREEN:
-       		   	  switch ( key )
-       			  {
-       			    case KEY_UP:
-       			    	key_ready |= UP_KEY_READY;
-       			      break;
-       			    case KEY_UP_BREAK:
-       			    	key_ready &= ~UP_KEY_READY;
-       			    	enter_count = 0;
-       			        break;
-       			    case KEY_DOWN_BREAK:
-       			    	key_ready &= ~DOWN_KEY_READY;
-       			    	enter_count = 0;
-       			    	break;
-       			    case KEY_DOWN:
-       			    	key_ready |= DOWN_KEY_READY;
-       			    	break;
-       			    case KEY_ENTER:
-       			        if (key_ready &  (DOWN_KEY_READY | UP_KEY_READY  ))
-       			        {
-       			        	if (++enter_count == 2 )
-       			        	  menu->pCurrIndex = 1;
-       			        	else
-       			        	  break;
-       			        }
-       			        else
-       			        {
-       			        	menu->pCurrIndex = 2;
-       			        }
-       			        key_ready   = 0;
-       			        enter_count = 0;
-       			        break;
-       			    default:
-       			    	break;
-       			  }
-       	   case MENU_SCREEN:
-       		   if ( key == KEY_EXIT)
-       		   {
-       			 menu->pHomeMenu[menu->pCurrIndex].CurLine = 0;
-       			 menu->pHomeMenu[menu->pCurrIndex].CursorOwener = 0;
-       		     menu->pCurrIndex = 0;
-       		   }
-       		   else
-       			   vMenuScreenCallBack (menu, key,1);
-       		   break;
-       	   default:
-       		    break;
-       }
+
+	uint8_t           index = menu->pCurrIndex;
+	xScreenSetObject* pMenu = menu;
+
+
+	  switch ( key )
+	  {
+	    case KEY_UP:
+	    	if ( fDownScreen == FLAG_RESET )
+	    	{
+	          menu->pCurrIndex++;
+	          if (menu->pCurrIndex > menu->pMaxIndex)
+	          {
+	        	 pCurrMenu->pCurrIndex = 0U;
+	          }
+	        }
+	    	else
+	    	{
+	    		if (menu->pHomeMenu[menu->pCurrIndex].DataIndex<255) menu->pHomeMenu[menu->pCurrIndex].DataIndex++ ;
+	    	}
+	      break;
+	    case KEY_DOWN:
+	    	if ( fDownScreen == FLAG_RESET )
+	    	{
+	    		  if (menu->pCurrIndex > 0)
+	    		         {
+	    		        	 pCurrMenu->pCurrIndex--;
+	    		         }
+	    		  else
+	    			  pCurrMenu->pCurrIndex = 0;
+	    	}
+	    	else
+	    	{
+	    		if (menu->pHomeMenu[menu->pCurrIndex].DataIndex>0) menu->pHomeMenu[menu->pCurrIndex].DataIndex-- ;
+	    	}
+	       break;
+	    case  KEY_ENTER:
+	       if ( fDownScreen == FLAG_SET )
+	            {
+	              fDownScreen = FLAG_RESET;
+	              if ( menu->pHomeMenu[index].pUpScreenSet != NULL )
+	              {
+	                pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
+	                menu->pHomeMenu[menu->pCurrIndex].DataIndex = 0;
+	                pMenu     = pCurrMenu;
+	              }
+	            }
+	            pMenu->pCurrIndex = ( pMenu->pCurrIndex == pMenu->pMaxIndex ) ? 0U : pMenu->pCurrIndex + 1;
+	         //   uCurrentAlarm =0;
+	         //   key_ready &= ~SET_MENU_READY;
+	            break;
+	          case KEY_EXIT:
+	              //Если нажата клавиша вниз, проверяем флаг, сигнализурующий что мы листаем
+	              //карусель вложенных экранов
+
+	                  if ( fDownScreen == FLAG_RESET )
+	                  {
+	                    if ( menu->pHomeMenu[index].pDownScreenSet != NULL )
+	                    {
+	                      pCurrMenu             = menu->pHomeMenu[index].pDownScreenSet;
+	                      fDownScreen            = FLAG_SET;
+	                      pCurrMenu->pCurrIndex = 0U;
+
+	                    }
+	                  }
+	                  else
+	                  {
+	                    pMenu->pCurrIndex = ( pMenu->pCurrIndex == pMenu->pMaxIndex ) ? 0U : pMenu->pCurrIndex + 1;
+	                  }
+
+	             break;
+
+
+
+
+
+	    default:
+	      break;
+	  }
+	  return;
 }
 
 void vMenu( void)
 {
-	while(1)
-	{
-		vDrawObject( pCurrMenu );
-		vLCDRedraw();
-		//pCurrMenu->pFunc( pCurrMenu, key );
-	}
+	static uint8_t           key              = 0U;
+	//vDrawObject( ( xScreenObjet * )pCurrMenu->pHomeMenu[pCurrMenu->pCurrIndex].pScreenCurObjets );
+	 vDrawObject( pCurrMenu );
+	 if ( xQueueReceive( pKeyboard, &TempEvent, 0U ) == pdPASS )
+	  {
+
+	       BufferEvent = TempEvent;
+	      //Если зафиксировано нажатие клавиши
+	      if ( TempEvent.Status == MAKECODE )
+	      {
+	          key = TempEvent.KeyCode | MAKECODE;
+	      }
+	      else
+	    	  key = 0;
+	      if (key!= 0)
+
+
+	      pCurrMenu->pFunc( pCurrMenu, key );
+	  }
+
 
 }

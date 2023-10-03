@@ -52,6 +52,7 @@ I2C_HandleTypeDef hi2c1;
 RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_rx;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim6;
@@ -138,6 +139,18 @@ const osThreadAttr_t ControlTask_attributes = {
   .stack_size = sizeof(mainControlTaskBuffer),
   .priority = (osPriority_t) osPriorityBelowNormal,
 };
+/* Definitions for UARTTask */
+osThreadId_t UARTTaskHandle;
+uint32_t UARTTaskBuffer[ 128 ];
+osStaticThreadDef_t UARTTaskControlBlock;
+const osThreadAttr_t UARTTask_attributes = {
+  .name = "UARTTask",
+  .cb_mem = &UARTTaskControlBlock,
+  .cb_size = sizeof(UARTTaskControlBlock),
+  .stack_mem = &UARTTaskBuffer[0],
+  .stack_size = sizeof(UARTTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* Definitions for TimersEvent */
 osEventFlagsId_t TimersEventHandle;
 osStaticEventGroupDef_t TimersEventControlBlock;
@@ -202,6 +215,7 @@ extern void vKeyboardTask(void *argument);
 extern void LAMPstart(void *argument);
 extern void StartMb(void *argument);
 extern void StartControlTask(void *argument);
+extern void StartUARTTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -319,16 +333,19 @@ int main(void)
   DIN_DOUT_TaskHandle = osThreadNew(StartDIN_DOUT, NULL, &DIN_DOUT_Task_attributes);
 
   /* creation of KeyboardTask */
-  KeyboardTaskHandle = osThreadNew(vKeyboardTask, NULL, &KeyboardTask_attributes);
+ KeyboardTaskHandle = osThreadNew(vKeyboardTask, NULL, &KeyboardTask_attributes);
 
   /* creation of LAP_task */
-  LAP_taskHandle = osThreadNew(LAMPstart, NULL, &LAP_task_attributes);
+//  LAP_taskHandle = osThreadNew(LAMPstart, NULL, &LAP_task_attributes);
 
   /* creation of mbTask */
-  mbTaskHandle = osThreadNew(StartMb, NULL, &mbTask_attributes);
+//  mbTaskHandle = osThreadNew(StartMb, NULL, &mbTask_attributes);
 
   /* creation of ControlTask */
-  ControlTaskHandle = osThreadNew(StartControlTask, NULL, &ControlTask_attributes);
+ // ControlTaskHandle = osThreadNew(StartControlTask, NULL, &ControlTask_attributes);
+
+  /* creation of UARTTask */
+ // UARTTaskHandle = osThreadNew(StartUARTTask, NULL, &UARTTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -634,9 +651,9 @@ static void MX_SPI2_Init(void)
   hspi2.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
-  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -670,9 +687,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 3672;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 65535;
+  htim2.Init.Period = 1000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -684,7 +701,7 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
   {
@@ -793,7 +810,7 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
   huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_CTS;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
@@ -813,8 +830,12 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
   /* DMA2_Channel4_5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Channel4_5_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Channel4_5_IRQn);
@@ -844,9 +865,9 @@ static void MX_GPIO_Init(void)
                           |Relay_Crash_Pin|LedR_FBO_accident_Pin|LedY_Local_Control_Pin|LedG_FBO_ON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LCD_0_Pin|LCD_1_Pin|LCD_2_Pin|LampNPL_Pin
-                          |LCD_3_Pin|LCD_4_Pin|LCD_5_Pin|LCD_6_Pin
-                          |LCD_7_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LCD_0_Pin|LCD_1_Pin|LCD_2_Pin|Ind_RS_Pin
+                          |Ind_LED_Pin|LampNPL_Pin|LCD_3_Pin|LCD_4_Pin
+                          |LCD_5_Pin|LCD_6_Pin|LCD_7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(EN485_GPIO_Port, EN485_Pin, GPIO_PIN_RESET);
@@ -874,21 +895,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LCD_0_Pin LCD_1_Pin LCD_2_Pin LampNPL_Pin
-                           LCD_3_Pin LCD_4_Pin LCD_5_Pin LCD_6_Pin
-                           LCD_7_Pin */
-  GPIO_InitStruct.Pin = LCD_0_Pin|LCD_1_Pin|LCD_2_Pin|LampNPL_Pin
-                          |LCD_3_Pin|LCD_4_Pin|LCD_5_Pin|LCD_6_Pin
-                          |LCD_7_Pin;
+  /*Configure GPIO pins : LCD_0_Pin LCD_1_Pin LCD_2_Pin Ind_RS_Pin
+                           Ind_LED_Pin LampNPL_Pin LCD_3_Pin LCD_4_Pin
+                           LCD_5_Pin LCD_6_Pin LCD_7_Pin */
+  GPIO_InitStruct.Pin = LCD_0_Pin|LCD_1_Pin|LCD_2_Pin|Ind_RS_Pin
+                          |Ind_LED_Pin|LampNPL_Pin|LCD_3_Pin|LCD_4_Pin
+                          |LCD_5_Pin|LCD_6_Pin|LCD_7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : Ind_RS_Pin Ind_LED_Pin */
-  GPIO_InitStruct.Pin = Ind_RS_Pin|Ind_LED_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : EN485_Pin */
@@ -903,13 +918,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
- if (htim->Instance == TIM7)
- {
-	// vTimeExpire();
- }
-}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -922,9 +931,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+vMenuInit();
   /* Infinite loop */
   for(;;)
   {
+	  vMenu();
     osDelay(1);
   }
   /* USER CODE END 5 */
@@ -938,6 +949,21 @@ void StartDefaultTask(void *argument)
   * @param  htim : TIM handle
   * @retval None
   */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+   if (htim->Instance == TIM2)
+   {
+			 rvvTIMERExpiredISR();
+  }
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

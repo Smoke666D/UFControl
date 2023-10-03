@@ -10,11 +10,11 @@
 
 #include "menu.h"
 
-#define MAIN_MENU_COUNT 3
+#define MAIN_MENU_COUNT 2
 #define DEVOLOPER_MENU_COUNT 2
 #define USER_MENU_COUNT	     7
 #define CONTROL_TYPE         8
-
+#define STATUS_MENU_COUNT    4
 
 
 #define LIST_LAMP_STATUS_ID    0x01
@@ -23,5 +23,5 @@
 extern xScreenSetObject xMainMenu;
 extern xScreenSetObject xUserMenu;
 extern xScreenSetObject xDevoloperMenu;
-
+extern xScreenSetObject xStatusMenu;
 #endif /* SRC_MENUDATA_H_ */

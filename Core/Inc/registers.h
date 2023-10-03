@@ -60,16 +60,25 @@
 #define LAM_ERROR_REG_MSB (LAM_ERROR_REG_LSB +1)
 #define DEVICE_ALARM_REG ( LAM_ERROR_REG_MSB +1)
 #define DEVICE_STATUS_REG (DEVICE_ALARM_REG +1)
-#define REGISTER_COUNT ( DEVICE_STATUS_REG +1)
+#define H_VOLTAGE_REG  	   (DEVICE_STATUS_REG +1 )
+#define L_VOLTAGE_REG	   ( DEVICE_STATUS_REG +1 )
+#define REGISTER_COUNT ( L_VOLTAGE_REG +1)
 
 #define DOOR_ALARM        1
+#define MB_DOOR_ALARM     1
 #define REMOTE_FLAG 	  1
 #define FIRE_FLAG   	  2
+#define MB_FIRE_ALARM     2
 #define LOCAL_FLAG  	  2
 #define REMOTE_ACT_FLAG   3
+#define MB_REMOTE_FLAG    3
+#define MB_LOCAL_FLAG     4
+#define MB_REMOTE_ACT     5
 #define ALARM_OUT_FLAG	  4
 #define LOCAL_OUT_FLAG	  5
 #define WORK_OUT_FLAG     6
+#define SCADA_FLAG        7
+#define SCADA_ON_FLAG	  8
 
 #define FIRST_REGISTER_ADDR    0
 #define FIRST_EEPROM_REG_ADDR  0
@@ -79,4 +88,5 @@ void vInitRegister();
 uint32_t uGetRegister(uint8_t addres);
 void vSetRegister(uint8_t addres, uint32_t data);
 void vSetRegisterBit(uint8_t addres, uint8_t bits, uint8_t data);
+uint8_t getRegisterBit(uint8_t addres, uint8_t bits);
 #endif /* INC_REGISTERS_H_ */

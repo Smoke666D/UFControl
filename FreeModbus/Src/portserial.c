@@ -184,7 +184,7 @@ BOOL xMBPortSerialGetByte(CHAR * pucByte)
 }
 
 
-#ifdef SLAVE_MODE
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 
@@ -240,7 +240,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	pxMBFrameCBByteReceived();
 }
 
-#endif
+
 /**
  * This function is serial receive callback function
  *

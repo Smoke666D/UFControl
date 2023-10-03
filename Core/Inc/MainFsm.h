@@ -13,9 +13,9 @@
 #include "event_groups.h"
 
 #define  DEVICE_DINPUT_START   0
-#define  DEVICE_DINPUT         1
+#define  DEVICE_DINPUT         0
 #define  DEVICE_COIL_START     (DEVICE_DINPUT_START + DEVICE_DINPUT)
-#define  DEVICE_COIL		   4
+#define  DEVICE_COIL		   0
 #define  DEVICE_INPUT_START    ( DEVICE_COIL_START + DEVICE_COIL)
 #define  DEVICE_INPUT		   8
 #define  DEVICE_HOLDING_START  (DEVICE_INPUT_START + DEVICE_INPUT)
@@ -27,8 +27,8 @@
 
 typedef enum
  {
-   TYPE = 0,
-   WATER_TEMP = 1,
+   INPUT_STATUS = 0,
+   DEVICE_STATUS = 1,
    IN_AIR_TEMP =2,
    FSM_STATUS = 3,
    WATER_VALVE = 4,
@@ -51,4 +51,5 @@ typedef enum
  } REGS_t;
 void StartMb(void *argument);
 void vUPDATECoils( uint8_t rw);
+void vSetRegInputBit(REGS_t reg_addr,uint16_t offset,  uint16_t data );
 #endif /* INC_MAINFSM_H_ */

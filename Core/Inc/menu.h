@@ -21,7 +21,8 @@
 #define KEY_ENTER            (enter_key | MAKECODE)  //5U
 #define KEY_ENTER_BREAK      (etner_key | BRAKECODE) // 6U
 #define KEY_EXIT            (exit_key | MAKECODE)  //9U
-#define KEY_EXIT_BREAK      (exit_key | BRAKECODE)//7U
+#define KEY_EXIT_BREAK       (exit_key | BRAKECODE)//7U
+
 
 
 #define   CENTER_ALIGN        1U
@@ -31,6 +32,19 @@
 #define ADD_ZERO			  0x01
 #define NO_ZERO				  0x00
 
+
+#define SCREEN_INDEX_ID		 0x00
+#define TOTAL_LAMP_DATA_ID   0x01
+#define LAMP_RES_DATA_ID     0x02
+
+typedef enum
+{
+  FLAG_RESET,
+  FLAG_SET,
+} FLAG;
+/*------------
+ *
+ */
 typedef enum
 {
   TEXT_STRING,
@@ -66,20 +80,20 @@ typedef struct __packed
   uint8_t     Width;
   OBJECT_TYPE xType;
   char*       pStringParametr;
-  void        ( *GetDtaFunction )();
+  uint8_t      ( *GetDtaFunction )();
   uint16_t    DataID;
+  uint8_t *   data_parametr;
 } xScreenObjet;
 
 
 
 typedef struct __packed
 {
-  SCREEN_TYPE_t scteen_type;
   const xScreenObjet*  pScreenCurObjets;
   void*        pUpScreenSet;
   void*        pDownScreenSet;
   uint8_t      MaxLineNumber;
-  uint8_t	   CurLine;
+  uint8_t	   DataIndex;
   uint8_t	   CursorOwener;
   uint8_t      MaxCursorObject;
 } xScreenType;
@@ -97,5 +111,6 @@ void vGetDataForList( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID, uint8_t ind
 void xMainScreenCallBack ( xScreenSetObject* menu, char key );
 void xCommonScreenCallBack ( xScreenSetObject* menu, char key );
 void vMenuScreenCallBack ( xScreenSetObject* menu, char key , uint8_t inc_index);
-
+void vMenu( void);
+void vMenuInit();
 #endif /* SRC_MENU_H_ */

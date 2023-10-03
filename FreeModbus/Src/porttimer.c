@@ -56,10 +56,9 @@ void vMBPortTimersDisable()
 }
 
 
-#ifdef SLAVE_MODE
 void rvvTIMERExpiredISR()
 {
     (void) pxMBPortCBTimerExpired();
 }
-#endif
+
 

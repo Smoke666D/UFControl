@@ -43,6 +43,11 @@ void vSetRegisterBit(uint8_t addres, uint8_t bits, uint8_t data)
 		else
 			REGISTER[addres] &= ~(0x1 << bits);
 	}
+
+}
+uint8_t getRegisterBit(uint8_t addres, uint8_t bits)
+{
+
 }
 
 uint32_t uGetRegister(uint8_t addres)

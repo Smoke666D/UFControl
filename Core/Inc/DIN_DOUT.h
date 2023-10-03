@@ -104,9 +104,9 @@ typedef enum {
 #define KEY_OFF            0x00U
 #define KEY_ON    	       0X01U
 #define KEY_ON_REPEAT      0x02U
-#define KEY_PEREOD         10U
+#define KEY_PEREOD         20U
 #define SWITCHONDELAY      2U
-#define DefaultDelay       10U
+#define DefaultDelay       50U
 #define DefaultRepeatRate  40U
 #define BRAKECODE          0x40U
 #define MAKECODE           0x80U
