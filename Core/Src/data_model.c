@@ -19,9 +19,8 @@ static uint8_t EditFlag = 0;
 static uint32_t EditDATA = 0;
 uint8_t bytebuffer;
 static void vSetResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t index);
-static void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data);
-static void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data);
-static void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data);
+
+//static void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data);
 static void vSetLampCount(DATA_COMMNAD_TYPE cmd, char* Data);
 char const AllOk[] = "Все исправны";
 static const char * ErrorStrings[] ={ "Аварий нет",
@@ -131,17 +130,22 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 
 void vGetFBOHSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
+
+
 	switch (cmd)
 	{
 		case mREAD:
 			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
-				sprintf(Data,"%u",(uint8_t) EditDATA );
+
+				sprintf(Data,"%02u",(uint8_t) EditDATA );
 				break;
 		case mINC:
+			    if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
 				EditFlag = 1;
 				if ( ++EditDATA > 99 )  EditDATA = 99;
 				break;
 		case mDEC:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
 				EditFlag = 1;
 				if (EditDATA  > 0)  EditDATA--;
 				break;
@@ -159,27 +163,29 @@ void vGetFBOHSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 void vGetFBOWSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
 	uint16_t index = usGetDataViewIndex();
-
+    uint16_t step = 1;
 	if  (index  > 3 )
 	{
 		index = 3;
 		vSetDataViewIndex( index );
 	}
+	for (uint8_t i = 0; i< index;i++)
+		step = step *step;
 	switch (cmd)
 	{
 		case mREAD:
 			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
-				sprintf(Data,"%u",(uint8_t) EditDATA );
+				sprintf(Data,"%04u",(uint8_t) EditDATA );
 				break;
 		case mINC:
 				EditFlag = 1;
-				EditDATA = EditDATA + pow(10,index);
+				EditDATA = EditDATA + step;
 				if ( EditDATA > 9999 )  EditDATA = 9999;
 				break;
 		case mDEC:
 				EditFlag = 1;
-				if (EditDATA -pow(10,index) > 0 )
-					EditDATA = EditDATA - pow(10,index);
+				if (EditDATA -step > 0 )
+					EditDATA = EditDATA - step;
 				break;
 		case mSAVE:
 				int16SetRegister(FBO_SIZE_H, (uint16_t)EditDATA );
@@ -193,27 +199,29 @@ void vGetFBOWSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 void vGetFBOLSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
 	uint16_t index = usGetDataViewIndex();
-
+	uint16_t step = 1;
 	if  (index  > 2 )
 	{
 		index = 2;
 		vSetDataViewIndex( index );
 	}
+	for (uint8_t i = 0; i< index;i++)
+		step = step *step;
 	switch (cmd)
 	{
 		case mREAD:
 			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
-				sprintf(Data,"%u",(uint8_t) EditDATA );
+				sprintf(Data,"%03u",(uint8_t) EditDATA );
 				break;
 		case mINC:
 				EditFlag = 1;
-				EditDATA = EditDATA + pow(10,index);
+				EditDATA = EditDATA + step;
 				if ( EditDATA > 999 )  EditDATA = 999;
 				break;
 		case mDEC:
 				EditFlag = 1;
-				if (EditDATA -pow(10,index) > 0 )
-					EditDATA = EditDATA - pow(10,index);
+				if ((EditDATA -step) > 0 )
+					EditDATA = EditDATA - step;
 				break;
 		case mSAVE:
 				int16SetRegister(FBO_SIZE_L, (uint16_t)EditDATA );
@@ -237,9 +245,7 @@ void vGetRecourceEditForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	}
 	switch (ID)
 	{
-		case ALL_LAMP_RES:
-			vSetAllResLampMenu( cmd,  Data);
-			break;
+
 		case SCREEN_INDEX_ID:
 
 			sprintf(Data,"%u",( max_index ==0 ) ? 0: index + 1 );
@@ -273,22 +279,20 @@ void vGetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	}
 	switch (ID)
 	{
-		case ALL_LAMP_RES:
-			vSetAllResLampMenu( cmd,  Data);
-			break;
 		case SCREEN_INDEX_ID:
-
 			sprintf(Data,"%u",( max_index ==0 ) ? 0: index + 1 );
 			break;
 		case TOTAL_LAMP_DATA_ID:
 			vSetLampCount(cmd,Data);
 			break;
 		case LAMP_RES_DATA_ID:
-			vSetResLampMenu(cmd, Data, index);
+			sprintf(Data,"%u ч", (uint16_t)int8GetRegister(LAMP_MAX_TIME_INDEX + index) * 1000 );
+			//vSetResLampMenu(cmd, Data, index);
 
 			break;
 		case LAMP_RES_PROCENT_DATA_ID:
 			sprintf(Data,"%u %%", int8GetRegister( LAMP_RESURSE_INDEX  + index) );
+
 		default:
 			break;
 	}
@@ -296,6 +300,106 @@ void vGetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 
 
 
+void vSetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+	uint16_t index = usGetDataViewIndex();
+	uint16_t max_index = int8GetRegister(LAMP_COUNT);
+	if  (index  >= max_index )
+	{
+		index = ( max_index == 0 ) ? 0 : max_index -1 ;
+		vSetDataViewIndex( index );
+	}
+	switch (ID)
+	{
+		case SCREEN_INDEX_ID:
+			sprintf(Data,"%u",( max_index ==0 ) ? 0: index + 1 );
+			break;
+		case TOTAL_LAMP_DATA_ID:
+			sprintf(Data,"%0u",(uint8_t) int8GetRegister( LAMP_COUNT) );
+			break;
+		default:
+			switch (cmd)
+				{
+				  case mREAD:
+					  if (EditFlag)
+						  sprintf(Data,"%u ч", (uint8_t)EditDATA * 1000);
+					  else
+						  sprintf(Data,"%u ч", (uint16_t)int8GetRegister(LAMP_MAX_TIME_INDEX + index) * 1000 );
+					  break;
+				  case mINC:
+					  if (EditFlag == 0) EditDATA = int8GetRegister(LAMP_MAX_TIME_INDEX + index);
+					  EditFlag = 1;
+					  if ( ++EditDATA > 13 )  EditDATA= 1;
+					 break;
+				  case mDEC:
+					  if (EditFlag == 0) EditDATA = int8GetRegister(LAMP_MAX_TIME_INDEX + index);
+					  EditFlag = 1;
+					  if ( --EditDATA == 0)  EditDATA= 1;
+					  break;
+				  case mSAVE:
+					  EditFlag = 0;
+					  int8SetRegister(LAMP_MAX_TIME_INDEX + index, (uint8_t)EditDATA );
+					  eEEPROMWr(LAMP_MAX_TIME_INDEX+ index ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + index],1);
+					  break;
+
+				  case mESC:
+					  EditDATA = 0;
+					  EditFlag = 0;
+					  break;
+				}
+			//vSetResLampMenu(cmd, Data, index);
+			break;
+	}
+}
+
+
+
+
+
+void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+
+	switch ( cmd)
+	{
+		case  mREAD:
+			if ( EditFlag ==0) EditDATA = 0;
+			if ( EditDATA  == 0)
+			{
+				sprintf(Data,"Всех ламп" );
+			}
+			else
+			{
+				sprintf(Data,"лампы %02u",EditDATA );
+			}
+         	break;
+		 case mINC:
+				 EditFlag = 1;
+				if ( ++EditDATA > int8GetRegister(LAMP_COUNT ))  EditDATA = int8GetRegister(LAMP_COUNT );
+				break;
+		case mDEC:
+				EditFlag = 1;
+				if ( EditDATA > 0)  EditDATA--;
+			break;
+		case mSAVE:
+			if (EditDATA!= 0)
+			{
+				*((uint32_t *)&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + EditDATA - 1]) = 0;
+				eEEPROMWr(LAMP_WORK_HOURS_INDEX + EditDATA - 1 ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + EditDATA - 1],4);
+			}
+			else
+			{
+				memset(&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],0,44*4);
+				eEEPROMWr(LAMP_WORK_HOURS_INDEX ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],44*4);
+
+			}
+		case mESC:
+			EditDATA = 0;
+			EditFlag = 0;
+			break;
+
+	}
+
+}
  void vEditLampCount(DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
 	switch (cmd)
@@ -357,7 +461,7 @@ void vSetTimeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	{
 			case mREAD:
 				if (EditFlag == 0) HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
-				sprintf(Data,"%u02:%u02:%u02",time.Hours,time.Minutes,time.Seconds);
+				sprintf(Data,"%02u:%02u:%02u",time.Hours,time.Minutes,time.Seconds);
 				break;
 			case mINC:
 				EditFlag = 1;
@@ -390,11 +494,12 @@ void vSetTimeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 				}
 				break;
 			 case mSAVE:
-					EditFlag = 0;
+
 					HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-					break;
+
 			 case mESC:
 					EditFlag = 0;
+					EditDATA = 0;
 					break;
 
 	}
@@ -408,7 +513,7 @@ void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	{
 			case mREAD:
 				if (EditFlag == 0) HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
-				sprintf(Data,"%u02.%u02.%u02",date.Date,date.Month,date.Year );
+				sprintf(Data,"%02u.%02u.%02u",date.Date,date.Month,date.Year );
 				break;
 			case mINC:
 				EditFlag = 1;
@@ -441,10 +546,9 @@ void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 				}
 				break;
 			 case mSAVE:
-					EditFlag = 0;
 					HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
-					break;
 			 case mESC:
+				    EditDATA = 0;
 					EditFlag = 0;
 					break;
 
@@ -452,50 +556,27 @@ void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 }
 
 
-static void vSetResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t index)
+
+
+
+
+ void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t index)
 {
 	switch (cmd)
 	{
 	  case mREAD:
-		  if (EditFlag)
-			  sprintf(Data,"%u ч", (uint8_t)EditDATA * 1000);
-		  else
-			  sprintf(Data,"%u ч", (uint16_t)int8GetRegister(LAMP_MAX_TIME_INDEX + index) * 1000 );
+		  uint8_t temp_data =1;
+		  if (EditFlag == 1)
+			  temp_data = EditDATA;
+		  sprintf(Data,"%u ч", (uint8_t)temp_data * 1000);
 		  break;
 	  case mINC:
+		  if ( EditFlag == 0 ) EditDATA = 1;
 		  EditFlag = 1;
-		  if ( ++EditDATA > 12 )  EditDATA= 1;
+		  if ( ++EditDATA > 13 )  EditDATA= 1;
 		 break;
 	  case mDEC:
-		  EditFlag = 1;
-		  if ( --EditDATA == 0)  EditDATA= 1;
-		  break;
-	  case mSAVE:
-		  EditFlag = 0;
-		  int8SetRegister(LAMP_MAX_TIME_INDEX + index, (uint8_t)EditDATA );
-		  eEEPROMWr(LAMP_MAX_TIME_INDEX+ index ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + index],1);
-		  break;
-	  case mESC:
-		  EditFlag = 0;
-		  break;
-	}
-}
-
-
-
-
-static void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data)
-{
-	switch (cmd)
-	{
-	  case mREAD:
-		  sprintf(Data,"%u ч", (uint8_t)EditDATA * 1000);
-		  break;
-	  case mINC:
-		  EditFlag = 1;
-		  if ( ++EditDATA > 12 )  EditDATA= 1;
-		 break;
-	  case mDEC:
+		  if ( EditFlag == 0 ) EditDATA = 1;
 		  EditFlag = 1;
 		  if ( --EditDATA == 0)  EditDATA= 1;
 		  break;
@@ -506,8 +587,8 @@ static void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data)
 			  int8SetRegister(LAMP_MAX_TIME_INDEX + i, (uint8_t)EditDATA );
 		  }
 		  eEEPROMWr(LAMP_MAX_TIME_INDEX ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX],(uint8_t) int8GetRegister( LAMP_COUNT));
-		  break;
 	  case mESC:
+		  EditDATA = 0;
 		  EditFlag = 0;
 		  break;
 	}
@@ -615,12 +696,6 @@ void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
    		   HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
    		   sprintf(Data,"%02u:%02u:%02u  %02u.%02u.20%02u",time.Hours,time.Minutes,time.Seconds,date.Date,date.Month,date.Year);
    		   break;
-       case MB_ADRESS_ID :
-    	   vGetMbTypeMenu(cmd, Data);
-    	   break;
-       case CONTROL_TYPE_ID:
-    	   vGetControlTypeMenu(cmd, Data);
-   		   break;
        case  FBO_SIZE_ID:
     	   sprintf(Data,"%04ux%03u-%02u ",int16GetRegister(FBO_SIZE_W ),int16GetRegister(FBO_SIZE_H ),int16GetRegister(FBO_SIZE_L ));
     	   break;
@@ -629,7 +704,7 @@ void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
    }
 }
 
-static void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data)
+ void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
 {
 	uint8_t data =0;
 	switch (cmd)
@@ -639,10 +714,13 @@ static void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data)
 		  sprintf(Data,"%u", data);
 		  break;
 	  case mINC:
+		  if (EditFlag == 0) EditDATA = int8GetRegister(MODBUS_ADDRES );
 		  EditFlag = 1;
+
 		  if ( ++EditDATA >= 255 )  EditDATA= 1;
 		 break;
 	  case mDEC:
+		  if (EditFlag == 0) EditDATA = int8GetRegister(MODBUS_ADDRES );
 		  EditFlag = 1;
 		  if ( --EditDATA == 0)  EditDATA= 1;
 		  break;
@@ -650,15 +728,15 @@ static void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data)
 		  EditFlag = 0;
 		  int8SetRegister(MODBUS_ADDRES, (uint8_t)EditDATA );
 		  data = (uint8_t)EditDATA;
-		   eEEPROMWr(MODBUS_ADDRES,&data,1);
-		  break;
+		  eEEPROMWr(MODBUS_ADDRES, &data,1);
 	  case mESC:
+		  EditDATA = 0;
 		  EditFlag = 0;
 		  break;
 	}
 }
 
-static void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data)
+void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
 {
 	uint8_t data =0;
 	switch (cmd)
@@ -668,10 +746,12 @@ static void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data)
 		  sprintf(Data,"%s",(data ? "ЩИТ" : "SCADA"));
 		  break;
 	  case mINC:
+		  if (EditFlag == 0) EditDATA =int8GetRegister(CONTROL_TYPE_REG );
 		  EditFlag = 1;
 		  if ( EditDATA== 0 )  EditDATA= 1;
 		 break;
 	  case mDEC:
+		  if (EditFlag == 0) EditDATA =int8GetRegister(CONTROL_TYPE_REG );
 		  if ( EditDATA == 1)  EditDATA= 0;
 		  EditFlag = 1;
 		  break;
@@ -679,9 +759,10 @@ static void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data)
 		  EditFlag = 0;
 		  int8SetRegister(CONTROL_TYPE_REG, (uint8_t)EditDATA  );
 		  data = (uint8_t)EditDATA;
-		  eEEPROMWr(CONTROL_TYPE_REG,&data,1);
+		  eEEPROMWr(CONTROL_TYPE_REG ,&DATA_MODEL_REGISTER[CONTROL_TYPE_REG],1);
 		  break;
 	  case mESC:
+		  EditDATA = 0;
 		  EditFlag = 0;
 		  break;
 	}
@@ -699,7 +780,14 @@ void InitDataModel()
 		{
 			memset(DATA_MODEL_REGISTER,0,EEPROM_REGISER_COUNT);
 			DATA_MODEL_REGISTER[VALID_CODE_ADDRES] = VALID_CODE;
+			DATA_MODEL_REGISTER[CONTROL_TYPE_REG ] = (0x01<<LOCAL_TYPE);
+			DATA_MODEL_REGISTER[MODBUS_ADDRES  ] = 0x01;
+			DATA_MODEL_REGISTER[LAMP_COUNT]= 44;
+			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_W ]) =1000;
+			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_H   ]) = 800;
 			eEEPROMWr(VALID_CODE_ADDRES,DATA_MODEL_REGISTER,EEPROM_REGISER_COUNT);
+			memset(DATA_MODEL_REGISTER,0,EEPROM_REGISER_COUNT);
+			eEEPROMRd(0x00 ,DATA_MODEL_REGISTER , EEPROM_REGISER_COUNT);
 		}
 	}
 }

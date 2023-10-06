@@ -12,7 +12,7 @@
 #include "menu.h"
 
 
-#define VALID_CODE      0x55
+#define VALID_CODE      0x38
 /* описание регистра в регисторвой модели*/
 #define VALID_CODE_ADDRES   0
 #define MODBUS_ADDRES      ( VALID_CODE_ADDRES +1  )
@@ -130,11 +130,16 @@ void vSetTimeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vGetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
+void vSetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vGetLapmErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vGetFBOHSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vGetFBOWSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vGetFBOLSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
+void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
+void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID);
+void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID);
+void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t index);
 uint8_t ucGetLampProc(uint8_t lamp_id);
 void vLAMWorkHoursWrite();
 #endif /* INC_DATA_MODEL_H_ */

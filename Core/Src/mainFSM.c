@@ -73,15 +73,22 @@ uint16_t usGetReg( REGS_t reg_addr)
 
 void StartMb(void *argument)
 {
-
-
-	 uint16_t addres = 1;
-	// addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
+	 uint16_t addres  = int8GetRegister(MODBUS_ADDRES );
 	 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
 	 eMBEnable(  );
+	 EventGroupHandle_t system_event = xGetSystemUpdateEvent();
      while (1)
+
      {
 		 eMBPoll();
 		 vTaskDelay(10);
+		 if (xEventGroupGetBits(system_event) & SYSTEM_IDLE)
+		 {
+			 eMBDisable();
+			 xEventGroupWaitBits(system_event, SYSTEM_REINIT, pdTRUE, pdTRUE, portMAX_DELAY );
+			 addres  = int8GetRegister(MODBUS_ADDRES );
+			 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
+			 eMBEnable();
+		 }
 	 }
 }

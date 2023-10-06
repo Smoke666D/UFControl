@@ -12,11 +12,8 @@
 #define MAX_CHAR  40
 static uint8_t LCD_BUFFER[MAX_CHAR];
 static uint8_t LCD_OUT_BUFFER[ MAX_CHAR  ];
-static IDICATOR_STRING_BUFFER LCD_DATA_CHNGE = NO_CHANGE;
 
-static uint32_t local_period = 40;
-static uint8_t cursor_pos = 0;
-static uint8_t cur_cursor_pos = 0;
+
 extern TIM_HandleTypeDef htim7;
 static   EventGroupHandle_t lcdFlags;
 static   StaticEventGroup_t lcdFlagCreatedEventGroup;
@@ -43,9 +40,7 @@ void ClearScreenBuffer()
 void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y)
 {
  uint8_t k = 0;
- uint8_t Data[20];
- //convertUtf8ToCp1251(data,Data);
- volatile char temp;
+ char temp;
  for (uint8_t i = (pos_x+ (pos_y*20));i< MAX_CHAR;i++)
  {
 	 if (data[k] !=0)
@@ -94,20 +89,7 @@ static void WriteByte( uint8_t data)
 	LCD_0_GPIO_Port->ODR = (LCD_0_GPIO_Port->ODR & 0xFF00) | data;
 }
 
-static void ReadByte (uint8_t * pData)
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-	 GPIO_InitStruct.Pin = LCD_0_Pin|LCD_1_Pin|LCD_2_Pin | LCD_3_Pin|LCD_4_Pin
-	                          |LCD_5_Pin|LCD_6_Pin|LCD_7_Pin;
-	  GPIO_InitStruct.Mode = GPIO_MODE_INPUT ;
-	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	*pData = (uint16_t) LCD_0_GPIO_Port->ODR & 0x0F;
-	 GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	 HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-}
 
 static void DelayUS( uint16_t value)
 {
@@ -145,38 +127,9 @@ static void LCD_SendData	(uint8_t data)
 	DelayUS(50);
 }
 
-static uint8_t ReadByt()
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-		 GPIO_InitStruct.Pin = LCD_0_Pin|LCD_1_Pin|LCD_2_Pin | LCD_3_Pin|LCD_4_Pin
-		                          |LCD_5_Pin|LCD_6_Pin|LCD_7_Pin;
-		  GPIO_InitStruct.Mode = GPIO_MODE_INPUT ;
-		  GPIO_InitStruct.Pull = GPIO_NOPULL;
-		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-		  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-	RESET_RS;
-	SET_RW;
-	//Strob();
-	SET_E;
-	DelayUS(10);
-	uint8_t data = HAL_GPIO_ReadPin(GPIOB,LCD_7_Pin)<<7 |
-			HAL_GPIO_ReadPin(GPIOB,LCD_6_Pin)<<6 |
-			 HAL_GPIO_ReadPin(GPIOB,LCD_5_Pin)<<5 |
-			HAL_GPIO_ReadPin(GPIOB,LCD_4_Pin)<<4 |
-			 HAL_GPIO_ReadPin(GPIOB,LCD_3_Pin)<<3 |
-			 HAL_GPIO_ReadPin(GPIOB,LCD_2_Pin)<<2 |
-			 HAL_GPIO_ReadPin(GPIOB,LCD_1_Pin)<<1 |
-			 HAL_GPIO_ReadPin(GPIOB,LCD_0_Pin) ;
-	RESET_E;
-	 GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-		 HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-	return (uint8_t) data ;
-
-}
-
 void Init16X2LCD()
 {
-	volatile uint8_t temp;
+
 	lcdFlags= xEventGroupCreateStatic(&lcdFlagCreatedEventGroup );
 	//HAL_GPIO_WritePin(Ind_LED_GPIO_Port,Ind_LED_Pin, GPIO_PIN_SET);
 	RESET_E;
@@ -206,7 +159,7 @@ void vRedrawLCD()
 	memcpy(ddd,LCD_BUFFER,LED_STRING_LEN);
 	for (uint8_t i = 0;i < LED_STRING_LEN;i++)
 	{
-		if (ddd[i]!=LCD_OUT_BUFFER[i])
+		//if (ddd[i]!=LCD_OUT_BUFFER[i])
 		{
 
 			LCD_SendCommand(0x80 |  i);
@@ -232,7 +185,7 @@ void vRedrawLCD()
 
 	for (uint8_t i = 0;i< LED_STRING_LEN;i++)
 	{
-		if (ddd[i]!=LCD_OUT_BUFFER[i+ LED_STRING_LEN])
+		//if (ddd[i]!=LCD_OUT_BUFFER[i+ LED_STRING_LEN])
 		{
 			LCD_SendCommand(0x80 | 0x40 | i);
 			if (ddd[i] == 0)
@@ -250,7 +203,7 @@ void vRedrawLCD()
 	if (cursor_satatus == 1)
 		  {
 			  uint8_t com = 0x80 | cursor_x;
-			  if (cursor_y==2)  com = com |  0x40;
+			  if (cursor_y==1)  com = com |  0x40;
 			  LCD_SendCommand(com );
 			  LCD_SendCommand(LCD_ON_OFF  | DB_2 | DB_1 | DB_0);
 		  }
@@ -289,6 +242,7 @@ void LCD_Task(void *argument)
 		else
 		{
 			HAL_GPIO_WritePin(Ind_LED_GPIO_Port,Ind_LED_Pin, (LCD_LED_State == 0) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+			xEventGroupWaitBits(system_event, LCD_REDRAW,  pdTRUE, pdTRUE, portMAX_DELAY );
 			vRedrawLCD();
 		}
 	}

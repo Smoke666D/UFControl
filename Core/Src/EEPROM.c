@@ -45,10 +45,10 @@ void eEEPROM(I2C_HandleTypeDef * hi2c2)
 			  cur_len = SECTOR_SIZE - ( cur_addr % SECTOR_SIZE );
 			  if ( cur_len > byte_to_send )  cur_len = byte_to_send;
 			  ( void )memcpy( &sector_buffer[ADDRESS_DATA], &data[offset], cur_len );
-			  for (uint8_t i = 0; i< ADDRESS_DATA; i++ )
-			  {
-			 		  sector_buffer[i] = (( cur_addr >> BYTE_SHIFT*i ) & ADDRES_MASK ) ;
-			  }
+			  sector_buffer[0] =  (cur_addr >> 8) & 0xFF ;
+			  sector_buffer[1] =  cur_addr & 0xFF ;
+
+
 			  //
 			 // res =  EEPROM_WRITE_ERROR;
 			 // for (int i =0; i<5;i++)

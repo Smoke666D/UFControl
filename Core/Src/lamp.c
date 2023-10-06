@@ -8,12 +8,23 @@
 #include "main.h"
 #include "data_model.h"
 
+static  EventGroupHandle_t system_event = NULL;
+
+ void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
+ {
+	 static portBASE_TYPE xHigherPriorityTaskWoken;
+	 xHigherPriorityTaskWoken = pdFALSE;
+	 if ( system_event!= NULL)
+	 xEventGroupSetBitsFromISR( system_event, RTC_STAMP, &xHigherPriorityTaskWoken );
+	 portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+	 return;
+ }
 
 
 void LAMPstart(void *argument)
 {
 	static 	LAMP_FSM_SATE lamp_fsm = WAIT_FOR_INIT;
-	static  EventGroupHandle_t system_event = NULL;
+
 	static  uint8_t lamp_count = 0;
 	for(;;)
 	{
@@ -32,7 +43,7 @@ void LAMPstart(void *argument)
 				lamp_fsm   = WORK;
 				break;
 			case WORK:
-				osDelay(1000);
+				xEventGroupWaitBits(system_event, RTC_STAMP ,  pdTRUE, pdTRUE, portMAX_DELAY );
 				if  (xEventGroupGetBits(system_event) & SYSTEM_IDLE)
 				{
 					lamp_fsm   = LAMP_IDLE;
@@ -59,19 +70,21 @@ void LAMPstart(void *argument)
 														error_msb =error_msb>>1;
 
 						}
-
-						if (!error_flag)
+						if ( int8GetRegister(DEVICE_OUTPUT_REG) & (0x01<<WORK_OUT_FLAG ))
 						{
-							uint32_t new_recource_data = int32GetData(LAMP_WORK_HOURS_INDEX + i)+1;
-							int32SetData (LAMP_WORK_HOURS_INDEX + i,  new_recource_data );   //Если флага ошибок нет, инкриментируем счетчик времени работы
-							uint8_t resource = (uint8_t)  ( (new_recource_data/360.0) / ((float) int8GetRegister(LAMP_MAX_TIME_INDEX + i) * 1000 ) )*100;
-							int8SetRegister( LAMP_RESURSE_INDEX + i , resource);
-							if (resource >=97) remain_resourse_3++;
-							if (resource >=100) remain_resourse_0++;
-						}
-						else
-						{
-							error_count++;
+							if (!error_flag)
+							{
+								uint32_t new_recource_data = int32GetData(LAMP_WORK_HOURS_INDEX + i)+1;
+								int32SetData (LAMP_WORK_HOURS_INDEX + i,  new_recource_data );   //Если флага ошибок нет, инкриментируем счетчик времени работы
+								uint8_t resource = (uint8_t)  ( (new_recource_data/360.0) / ((float) int8GetRegister(LAMP_MAX_TIME_INDEX + i) * 1000 ) )*100;
+								int8SetRegister( LAMP_RESURSE_INDEX + i , resource);
+								if (resource >=97) remain_resourse_3++;
+								if (resource >=100) remain_resourse_0++;
+							}
+							else
+							{
+								error_count++;
+							}
 						}
 					}
 					int8SetRegisterBit(DEVICE_ALARM_REG, REMAIN_RESOURS_3, (uint8_t)(remain_resourse_3 > 0 ) );

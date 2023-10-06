@@ -64,4 +64,5 @@ void ClearScreenBuffer();
 void LCD_Cursor_Off();
 void LCD_LED_ON();
 void LCD_LED_OFF();
+void Init16X2LCD();
 #endif /* INC_LCD_H_ */

@@ -9,13 +9,10 @@
 
 #include "math.h"
 #include "menudata.h"
-//static xScreenSetObject* pCurrMenu        = 0;
+
 static xScreenObjet*     pCurObject       = 0;
 static xScreenSetObject* pCurrMenu        = NULL;
 static xScreenObjet*     pCurDrawScreen   = NULL;
-static uint8_t cur_cursor_owener  = 0;
-static uint8_t key_ready = 0;
-static uint8_t enter_count = 0;
 static QueueHandle_t     pKeyboard        = NULL;
 static KeyEvent          TempEvent        = { 0U };
 static KeyEvent          BufferEvent      = { 0U };
@@ -34,17 +31,11 @@ void vDrawObject( xScreenSetObject* menu)
 {
 
   xScreenObjet * pScreenObjects =  ( xScreenObjet * )pCurrMenu->pHomeMenu[pCurrMenu->pCurrIndex].pScreenCurObjets;
-
   char* TEXT      = NULL;
- // uint8_t  Insert    = 0U;
   char  Text[20U];
   char  TextBuf[40];
- /* uint8_t  i         = 0U;
-  uint8_t  x_offset  = 0U;
-  uint8_t  y_offset  = 0U;*/
   uint8_t  Redraw    = 0U;
-  uint8_t  CursorPos = 0U;
-  uint8_t  ListCount = 0;
+
 
   //Проверяем состояние экрна. Если экран изменлися или изменилась строка вывода, то надо пперерисовать экраа
   if ( pCurDrawScreen != pScreenObjects )
@@ -60,6 +51,7 @@ void vDrawObject( xScreenSetObject* menu)
       {
         case DATA:
         case EDIT_DATA:
+        case MULTI_EDIT_DATA:
           Redraw = 1U;
           break;
         default:
@@ -179,7 +171,26 @@ void vSetDataViewIndex( uint16_t new_index)
 {
 	DataViewIndex = new_index;
 }
+void xYesNoScreenKeyCallBack( xScreenSetObject* menu, char key )
+{
 
+	switch ( key)
+	{
+		case KEY_UP:
+			pCurObject->GetDtaFunction(mSAVE,NULL,0);
+			pCurrMenu = menu->pHomeMenu[0].pUpScreenSet;
+			DataViewIndex = 0;
+			break;
+
+		case  KEY_ENTER:
+			pCurObject->GetDtaFunction(mESC,NULL, 0);
+			pCurrMenu = menu->pHomeMenu[0].pUpScreenSet;
+			DataViewIndex = 0;
+		    break;
+		default:
+			break;
+	}
+}
 
 SCREEN_EDIT_STATUS edit_data_flag =SCREEN_VIEW;
 void xEditScreenCallBack ( xScreenSetObject* menu, char key )
@@ -206,7 +217,7 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 	    			}
 	    			break;
 	    		case PARAMENT_EDIT:
-	    			pMenu->pHomeMenu[index].pEitObject->GetDtaFunction(mINC,NULL,NULL);
+					menu->pHomeMenu[index].pEitObject->GetDtaFunction(mINC,NULL,menu->pHomeMenu[index].pEitObject->DataID);
 	    			break;
 	    	}
 	      break;
@@ -221,10 +232,10 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 	    		    break;
 	    		case PARAMETR_SELECT:
 	    		case  MULTI_PARAM_SELECT:
-	    			if (DataViewIndex > 1)  DataViewIndex -- ;
+	    			if (DataViewIndex > 0)  DataViewIndex -- ;
 	    		    break;
 	    		case PARAMENT_EDIT:
-	    			pMenu->pHomeMenu[index].pEitObject->GetDtaFunction(mDEC,NULL,NULL);
+	    			pMenu->pHomeMenu[index].pEitObject->GetDtaFunction(mDEC,NULL,menu->pHomeMenu[index].pEitObject->DataID);
 	    		    break;
 	    	}
 	       break;
@@ -240,8 +251,9 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 	           if ( pMenu->pHomeMenu[index].pUpScreenSet != NULL )
 	           {
 	               pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
+	               pCurrMenu->pCurrIndex = 0;
 	               menu->pHomeMenu[menu->pCurrIndex].DataIndex = 0;
-	               pMenu     = pCurrMenu;
+	               //pMenu     = pCurrMenu;
 	               xEventGroupSetBits(system_event,SYSTEM_RESTART);
 	           }
 	       }
@@ -262,6 +274,17 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 		        		  	   }
 		        		  	   if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
 		        		  }
+		           if (menu->pHomeMenu[index].ScreenType == COMMAND_EDIT)
+		           {
+		        	   edit_data_flag  = PARAMENT_EDIT;
+		        	   	   	   	   	//      pCurObject = menu->pHomeMenu[index].pEitObject;
+		        	  		        //	  pCurrMenu =  &xYesNoMenu;
+		        	  		        ////	  pCurrMenu->pHomeMenu[0].pUpScreenSet = menu;
+		        	  		        //	  menu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
+		        	  		        //	  edit_data_flag = SCREEN_VIEW;
+
+		        	   break;
+		           }
 		           if (menu->pHomeMenu[index].ScreenType == ONE_PARAMETR_EDIT)
 		           {
 		        	   edit_data_flag  = PARAMENT_EDIT;
@@ -269,8 +292,10 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 		           }
 		           else
 		           {
+		        	   menu->pHomeMenu[index].pEitObject->data_parametr[1] = 1;
 		        	   if (menu->pHomeMenu[index].pEitObject->xType == MULTI_EDIT_DATA)
 		        	   {
+
 		        		   edit_data_flag  = MULTI_PARAM_SELECT;
 		        	   }
 		        	   else
@@ -284,10 +309,14 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 		        	  edit_data_flag = PARAMENT_EDIT;
 		        	  break;
 		          case PARAMENT_EDIT:
-		        	  menu->pHomeMenu[index].pEitObject->GetDtaFunction(mSAVE,NULL,NULL);
-		        	  menu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
 		        	  edit_data_flag = SCREEN_VIEW;
-		        	  DataViewIndex = 0;
+		        	  menu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
+		        	  vDrawObject( pCurrMenu );
+		        	  pCurObject = menu->pHomeMenu[index].pEitObject;
+		        	  pCurrMenu =  &xYesNoMenu;
+		        	  pCurrMenu->pHomeMenu[0].pUpScreenSet = menu;
+
+
 		        	  break;
 		    }
 	        break;
@@ -306,7 +335,9 @@ void xStatusScreenCallBack ( xScreenSetObject* menu, char key )
 	  {
 	    case KEY_UP:
 	    	if ( fDownScreen == FLAG_RESET )
+	    	{
 	          if (++menu->pCurrIndex > menu->pMaxIndex)  {  pCurrMenu->pCurrIndex = 0U; }
+	    	}
 	    	else
 	    		DataViewIndex ++ ;
 	      break;
@@ -327,28 +358,22 @@ void xStatusScreenCallBack ( xScreenSetObject* menu, char key )
 	       if ( fDownScreen == FLAG_SET )
 	       {
 	           fDownScreen = FLAG_RESET;
-	           if ( menu->pHomeMenu[index].pUpScreenSet != NULL )
-	           {
-	               pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
-	               menu->pHomeMenu[menu->pCurrIndex].DataIndex = 0;
-	               pMenu     = pCurrMenu;
-	           }
 	           DataViewIndex = 0;
+	       }
+	       else
+	       {
+	    	   if ( menu->pHomeMenu[index].pUpScreenSet != NULL )
+	    	   {
+	    		   pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
+	    		  pCurrMenu->pCurrIndex = 0;
+	    	   }
 	       }
 	       break;
 	   case KEY_ENTER:
 	        if ( fDownScreen == FLAG_RESET )
 	        {
-	            if ( menu->pHomeMenu[index].pDownScreenSet != NULL )
-	            {
-	                pCurrMenu             = menu->pHomeMenu[index].pDownScreenSet;
-	                fDownScreen            = FLAG_SET;
-	                pCurrMenu->pCurrIndex = 0U;
-	            }
-	        }
-	        else
-	        {
-	            pMenu->pCurrIndex = ( pMenu->pCurrIndex == pMenu->pMaxIndex ) ? 0U : pMenu->pCurrIndex + 1;
+	            fDownScreen  = FLAG_SET;
+
 	        }
 	        break;
 	    default:
@@ -370,14 +395,9 @@ void xMainScreenCallBack ( xScreenSetObject* menu, char key )
 	        if (pMenu->pCurrIndex > 0)
 	        	(pMenu->pCurrIndex)--;
 	        else
-	        	pMenu->pCurrIndex = (pMenu->pMaxIndex-1);
+	        	pMenu->pCurrIndex = pMenu->pMaxIndex;
 	       break;
-	    case  KEY_EXIT:
-	       if ( pMenu->pHomeMenu[index].pUpScreenSet != NULL )
-	        {
-	             pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
-	             pCurrMenu->pCurrIndex = 0;
-	        }
+
 	    case KEY_ENTER:
 	    	 if (menu->pHomeMenu[index].pDownScreenSet!=NULL)
 	    	 {
@@ -385,7 +405,13 @@ void xMainScreenCallBack ( xScreenSetObject* menu, char key )
 	    		 pCurrMenu->pCurrIndex = 0U;
 	    	 }
 	       break;
-	    default:
+
+	    case KEY_EXIT:
+	    	 if ( pMenu->pHomeMenu[index].pUpScreenSet != NULL )
+	    	 {
+	    	      pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
+	    	      pCurrMenu->pCurrIndex = 0U;
+	    	 }
 	      break;
 	  }
 	  return;
@@ -406,6 +432,7 @@ void StartMenuTask(void *argument)
 	 osDelay(1);
 	 if (++timer > SETINGS_MENU_TIMEOUT) timer = SETINGS_MENU_TIMEOUT;
 	 vDrawObject( pCurrMenu );
+	 xEventGroupSetBits(system_event, LCD_REDRAW);
 	 if ( xQueueReceive( pKeyboard, &TempEvent, 0U ) == pdPASS )
 	 {
 	      BufferEvent = TempEvent;
@@ -420,9 +447,10 @@ void StartMenuTask(void *argument)
 	    	  //Если зафиксировано нажатие клавиши
 	    	if ( SET_MENU == 1 )
 	    	{
-	    		    		  timer = SETINGS_MENU_TIMEOUT;
-	    		    		  pCurrMenu = &xDevoloperMenu;
-	    		    		  xEventGroupSetBits(system_event,SYSTEM_STOP);
+	    		    timer = SETINGS_MENU_TIMEOUT;
+	    		    pCurrMenu = &xDevoloperMenu;
+	    		   xEventGroupSetBits(system_event,SYSTEM_STOP);
+	    		   SET_MENU = 0;
 	    	}
 
 

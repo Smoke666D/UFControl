@@ -33,7 +33,7 @@
 #define NO_ZERO				  0x00
 
 
-#define SCREEN_INDEX_ID		         0x00
+#define SCREEN_INDEX_ID		         0x13
 #define TOTAL_LAMP_DATA_ID   		 0x01
 #define LAMP_RES_DATA_ID    		 0x02
 #define LAMP_RES_PROCENT_DATA_ID     0x03
@@ -46,12 +46,10 @@
 #define OPEN_ID						 0x10
 #define ALARM_ID					 0x11
 #define CUR_TIME_ID					 0x12
-#define MB_ADRESS_ID                 0x13
-#define CONTROL_TYPE_ID				 0x14
-#define ALL_LAMP_RES				 0x15
 #define TIME_EDIT					 0x16
 #define DATE_EDIT					 0x17
 #define FBO_SIZE_ID					 0x18
+#define LAMP_RESET_DATA_ID			 0x19
 
 
 typedef enum
@@ -84,6 +82,7 @@ typedef enum
   VIEW_SCREEN,
   ONE_PARAMETR_EDIT,
   MULTI_PARAMETR_EDIT,
+  COMMAND_EDIT,
 } SCREEN_TYPE;
 
 typedef enum
@@ -143,6 +142,7 @@ void vSetDataViewIndex( uint16_t new_index);
 void xMainScreenCallBack ( xScreenSetObject* menu, char key );
 void xStatusScreenCallBack ( xScreenSetObject* menu, char key );
 void xEditScreenCallBack ( xScreenSetObject* menu, char key );
+void xYesNoScreenKeyCallBack( xScreenSetObject* menu, char key );
 void vMenu( void);
 void vMenuInit();
 void StartMenuTask(void *argument);

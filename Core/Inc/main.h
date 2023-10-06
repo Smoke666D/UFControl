@@ -71,6 +71,8 @@ void Error_Handler(void);
 #define SYSTEM_STOP				0x100
 #define SYSTEM_RESTART			0x200
 #define LCD_OFF					0x400
+#define LCD_REDRAW				0x800
+#define RTC_STAMP				0x1000
 
 EventGroupHandle_t xGetSystemUpdateEvent();
 /* USER CODE END EFP */
