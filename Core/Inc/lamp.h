@@ -20,21 +20,14 @@ typedef enum
   LAMP_ERROR  = 2,
 } LAMP_STATUS;
 
-typedef struct __packed
-{
- LAMP_STATUS state;
- uint32_t timer;
- uint8_t work_time;
-
-} LAMP_t;
-
-
 typedef enum
 {
   WAIT_FOR_INIT,
   INIT,
   WORK,
+  LAMP_IDLE,
 } LAMP_FSM_SATE;
 
 void LAMPstart(void *argument);
+
 #endif /* INC_LAMP_H_ */

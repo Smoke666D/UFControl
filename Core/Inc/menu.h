@@ -19,7 +19,7 @@
 #define KEY_DOWN_BREAK      (down_key | BRAKECODE) //3U
 #define KEY_DOWN            (down_key | MAKECODE)  //4U
 #define KEY_ENTER            (enter_key | MAKECODE)  //5U
-#define KEY_ENTER_BREAK      (etner_key | BRAKECODE) // 6U
+#define KEY_ENTER_BREAK      (enter_key | BRAKECODE) // 6U
 #define KEY_EXIT            (exit_key | MAKECODE)  //9U
 #define KEY_EXIT_BREAK       (exit_key | BRAKECODE)//7U
 
@@ -33,9 +33,26 @@
 #define NO_ZERO				  0x00
 
 
-#define SCREEN_INDEX_ID		 0x00
-#define TOTAL_LAMP_DATA_ID   0x01
-#define LAMP_RES_DATA_ID     0x02
+#define SCREEN_INDEX_ID		         0x00
+#define TOTAL_LAMP_DATA_ID   		 0x01
+#define LAMP_RES_DATA_ID    		 0x02
+#define LAMP_RES_PROCENT_DATA_ID     0x03
+#define TOTAL_LAMP_ERROR_ID          0x04
+#define LAMP_ERROR_DATA_ID           0X05
+#define TOTAL_ERROR_ID				 0x06
+#define ERROR_DATA_ID			     0X07
+#define STATUS_ID					 0x08
+#define WORK_ID						 0x09
+#define OPEN_ID						 0x10
+#define ALARM_ID					 0x11
+#define CUR_TIME_ID					 0x12
+#define MB_ADRESS_ID                 0x13
+#define CONTROL_TYPE_ID				 0x14
+#define ALL_LAMP_RES				 0x15
+#define TIME_EDIT					 0x16
+#define DATE_EDIT					 0x17
+#define FBO_SIZE_ID					 0x18
+
 
 typedef enum
 {
@@ -49,11 +66,25 @@ typedef enum
 {
   TEXT_STRING,
   DATA,
-  EDIT_DATA_ENUM,
-  EDIT_DATA_NUM,
-  CURSOR,
-  LIST_DATA,
+  EDIT_DATA,
+  MULTI_EDIT_DATA,
 } OBJECT_TYPE;
+
+
+typedef enum
+{
+  SCREEN_VIEW,
+  PARAMETR_SELECT,
+  MULTI_PARAM_SELECT,
+  PARAMENT_EDIT,
+} SCREEN_EDIT_STATUS;
+
+typedef enum
+{
+  VIEW_SCREEN,
+  ONE_PARAMETR_EDIT,
+  MULTI_PARAMETR_EDIT,
+} SCREEN_TYPE;
 
 typedef enum
 {
@@ -80,7 +111,7 @@ typedef struct __packed
   uint8_t     Width;
   OBJECT_TYPE xType;
   char*       pStringParametr;
-  uint8_t      ( *GetDtaFunction )();
+  void       ( *GetDtaFunction )();
   uint16_t    DataID;
   uint8_t *   data_parametr;
 } xScreenObjet;
@@ -92,10 +123,10 @@ typedef struct __packed
   const xScreenObjet*  pScreenCurObjets;
   void*        pUpScreenSet;
   void*        pDownScreenSet;
-  uint8_t      MaxLineNumber;
+  xScreenObjet*pEitObject;
   uint8_t	   DataIndex;
-  uint8_t	   CursorOwener;
-  uint8_t      MaxCursorObject;
+  uint8_t	   MaxMultiEditParametr;
+  SCREEN_TYPE  ScreenType;
 } xScreenType;
 
 typedef struct __packed
@@ -107,10 +138,12 @@ typedef struct __packed
 } xScreenSetObject;
 
 
-void vGetDataForList( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID, uint8_t index );
+uint16_t usGetDataViewIndex();
+void vSetDataViewIndex( uint16_t new_index);
 void xMainScreenCallBack ( xScreenSetObject* menu, char key );
-void xCommonScreenCallBack ( xScreenSetObject* menu, char key );
-void vMenuScreenCallBack ( xScreenSetObject* menu, char key , uint8_t inc_index);
+void xStatusScreenCallBack ( xScreenSetObject* menu, char key );
+void xEditScreenCallBack ( xScreenSetObject* menu, char key );
 void vMenu( void);
 void vMenuInit();
+void StartMenuTask(void *argument);
 #endif /* SRC_MENU_H_ */

@@ -85,10 +85,10 @@ typedef enum {
 #define KL3 INPUT_8
 #define KL4 INPUT_9
 #define DOOR INPUT_1
-#define REMOTE INPUT_2
+#define REMOTE INPUT_5
 #define FIRE INPUT_3
 #define LOCAL_C INPUT_4
-#define REMOTE_ACT INPUT_5
+#define REMOTE_ACT INPUT_2
 
 /*------------------------------------Работа с коавиатурой---------------------*/
 

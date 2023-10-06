@@ -56,11 +56,12 @@ static uint8_t rx_data;
 static void vReviceEnable()
 {
 	HAL_GPIO_WritePin(EN485_GPIO_Port,EN485_Pin,GPIO_PIN_RESET);
-
+	//HAL_GPIO_WritePin(EN485_GPIO_Port,EN485_Pin,GPIO_PIN_SET);
 }
 static void vTransmitEnable()
 {
 	HAL_GPIO_WritePin(EN485_GPIO_Port,EN485_Pin,GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(EN485_GPIO_Port,EN485_Pin,GPIO_PIN_RESET);
 }
 
 /* ----------------------- Start implementation -----------------------------*/

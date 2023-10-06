@@ -7,77 +7,115 @@
 
 
 #include "control.h"
+#include "data_model.h"
 
 
+uint8_t GetLowPowerState()
+{
+	return 0;
+}
 
 void StartControlTask(void *argument)
 {
-	CONTROLLER_STATE_t state = CONTROLLER_INIT;
-	EventGroupHandle_t system_event = NULL;
+	CONTROLLER_STATE_t state =  CONTROLLER_IDLE;
+	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
+	uint8_t control_type = 0;
+	uint8_t LOW_POWER = 0;
+	uint8_t START = 0;
 	while(1)
 	{
-		vTaskDelay(1);
+	   vTaskDelay(1);
+	   if ( GetLowPowerState() )
+	   {
+		   xEventGroupSetBits(system_event,  LCD_OFF);
+		   xEventGroupSetBits(system_event,SYSTEM_IDLE);
+		   state = CONTROLLER_IDLE;
+		   if (START == 1)
+		   {
+			   START = 0;
+			   vLAMWorkHoursWrite();
+		   }
+	   }
+	   else
+	   {
+		   if (START == 0)
+		   {
+			   START = 1;
+			   xEventGroupClearBits(system_event,  LCD_OFF);
+			   state = CONTROLLER_INIT;
+		   }
+	   }
+	   if  (( xEventGroupGetBits(system_event) & SYSTEM_RESTART) && (state==CONTROLLER_IDLE))
+	   {
+		  state = CONTROLLER_INIT;
+		  xEventGroupSetBits(system_event, SYSTEM_REINIT);
+	   }
+	   if  (( xEventGroupGetBits(system_event) & SYSTEM_STOP) && (state!=CONTROLLER_IDLE))
+	   {
+		   xEventGroupSetBits(system_event,SYSTEM_IDLE);
+		   state = CONTROLLER_IDLE;
+	   }
+	   int8SetRegisterBit( DEVICE_OUTPUT_REG, ALARM_OUT_FLAG,  int16GetRegister(DEVICE_ALARM_REG) & ERROR_LAM_FLAG );
 		switch (state)
 		{
 			case CONTROLLER_INIT:
-				system_event = xGetSystemUpdateEvent();
-				if (system_event !=NULL)
-				{
-					vInitRegister();
-					//xEventGroupWaitBits(system_event,   REGISTER_SYSTEM_READY | DIN_SYSTEM_READY,  pdTRUE, pdTRUE, portMAX_DELAY );
-					//xEventGroupSetBits(system_event, WORK_READY);
-					state = CONTROLLER_WORK;
-				}
+				xEventGroupClearBits(system_event,   SYSTEM_IDLE);
+				InitDataModel();
+				xEventGroupWaitBits(system_event,    DIN_SYSTEM_READY,  pdTRUE, pdTRUE, portMAX_DELAY );
+				xEventGroupClearBits(system_event,   SYSTEM_REINIT);
+				xEventGroupSetBits(system_event,     SYSTEM_READY);
+				state = CONTROLLER_WORK;
+				control_type =  int8GetRegister(CONTROL_TYPE_REG );
 				break;
 			case CONTROLLER_WORK:
-				if (uGetRegister(DEVICE_ALARM_REG)  )
+				if (int16GetRegister(DEVICE_ALARM_REG) & DEVICE_ERROR_MASK )
 				{
 					state = CONTROLLER_ALARM;
+
 				}
 				else
 				{
-					vSetRegisterBit(DEVICE_STATUS_REG,ALARM_OUT_FLAG, 0);
-					if (  getRegisterBit(DEVICE_STATUS_REG, LOCAL_FLAG) != 0 )
+					uint8_t status = int8GetRegister(DEVICE_STATUS_REG);
+
+					if ( status & ( 0x01<<LOCAL_FLAG ) )
 					{
-						vSetRegisterBit(DEVICE_STATUS_REG,WORK_OUT_FLAG, 1);
-						vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_OUT_FLAG, 1);
+						int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, 1 );
+						int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,1 );
 						break;
 					}
-					if (getRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG )!=0)
+					if (status  & ( 0x01<<REMOTE_FLAG ))
 					{
-						vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_OUT_FLAG, 0);
-						if (getRegisterBit(DEVICE_STATUS_REG, SCADA_FLAG) == 0)
+						int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,0);
+						if (control_type == SCADA_TYPE )
 						{
-							vSetRegisterBit(DEVICE_STATUS_REG,WORK_OUT_FLAG, getRegisterBit(DEVICE_STATUS_REG, REMOTE_ACT_FLAG ) !=0 ? 1: 0);
+							int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, int8GetRegister(SCADA_CONTROL_REG) );
+
 						}
 						else
 						{
-							vSetRegisterBit(DEVICE_STATUS_REG,WORK_OUT_FLAG, getRegisterBit(DEVICE_STATUS_REG, SCADA_ON_FLAG ) !=0 ? 1: 0);
+							int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, (status  & ( 0x01<< REMOTE_ACT_FLAG)) );
 						}
 						break;
 					}
-					if ( (getRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG )==0) && 	(  getRegisterBit(DEVICE_STATUS_REG, LOCAL_FLAG) == 0 ))
-					{
-						vSetRegisterBit(DEVICE_STATUS_REG,LOCAL_OUT_FLAG, 0);
-						vSetRegisterBit(DEVICE_STATUS_REG,WORK_OUT_FLAG, 0);
-					}
+					int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, 0 );
+					int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,0);
 				}
 				break;
 			case CONTROLLER_ALARM:
-				if (uGetRegister(DEVICE_ALARM_REG)  == 0 )
+				if (int8GetRegister(DEVICE_ALARM_REG) == 0 )
 				{
 						state = CONTROLLER_WORK;
 				}
-				vSetRegisterBit(DEVICE_STATUS_REG, WORK_OUT_FLAG,  0);
-				vSetRegisterBit(DEVICE_STATUS_REG, ALARM_OUT_FLAG, 1);
-				vSetRegisterBit(DEVICE_STATUS_REG, LOCAL_OUT_FLAG, 0);
-
+				int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, 0 );
+				int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,0);
 				break;
-			case CONTROLLER_REINIT:
+			case CONTROLLER_IDLE:
+			default:
 				break;
-			case CONTROLLER_SHOTDOWN:
-				xEventGroupClearBits(system_event, WORK_READY);
-				break;
+			/*case CONTROLLER_SHOTDOWN:
+				xEventGroupSetBits(system_event,SYSTEM_IDLE);
+				vLAMWorkHoursWrite();
+				break;*/
 		}
 	}
 }

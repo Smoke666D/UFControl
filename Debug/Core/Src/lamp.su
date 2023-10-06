@@ -1,4 +1,1 @@
-../Core/Src/lamp.c:14:13:vResetLamp	16	static
-../Core/Src/lamp.c:25:6:InitData	16	static
-../Core/Src/lamp.c:37:6:vSaveData	16	static
-../Core/Src/lamp.c:50:6:LAMPstart	40	static
+../Core/Src/lamp.c:13:6:LAMPstart	56	static

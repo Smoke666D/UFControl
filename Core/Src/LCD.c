@@ -29,10 +29,8 @@ const unsigned char russian[]={ 0x41, 0xA0, 0x42, 0xA1, 0xE0, 0x45,
 0x79, 0xE4, 0x78, 0xE5, 0xC0, 0xC1, 0xE6, 0xC2,0xC3, 0xC4, 0xC5,
 0xC6, 0xC7 };
 
-/*ventFlagsId_t event)
-{
-	osTimers = event;
-}*/
+
+static void LCD_SendCommand(uint8_t command);
 
 void ClearScreenBuffer()
 {
@@ -45,24 +43,22 @@ void ClearScreenBuffer()
 void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y)
 {
  uint8_t k = 0;
-
  uint8_t Data[20];
- convertUtf8ToCp1251(data,Data);
+ //convertUtf8ToCp1251(data,Data);
  volatile char temp;
  for (uint8_t i = (pos_x+ (pos_y*20));i< MAX_CHAR;i++)
  {
-	 if (Data[k] !=0)
+	 if (data[k] !=0)
 	 {
-		 if (Data[k] >=192)
-			temp = russian[Data[k] -192];
+		 if (data[k] >=192)
+			temp = russian[data[k] -192];
 		 else
 		 {
-			 if (Data[k]=='|') 			 temp = 0xB5;
+			 if (data[k]=='|') 			 temp = 0xB5;
 			 else
-				temp = Data[k];
+				temp = data[k];
 
 		 }
-	      LCD_DATA_CHNGE |= (i >20)?DOWN_STRING:UP_STRING;
 		  LCD_BUFFER[i] = temp ;
 		  k++;
 	 }
@@ -71,18 +67,21 @@ void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y)
 		 break;
 	 }
  }
- if (LCD_DATA_CHNGE !=NO_CHANGE)
- {
-	 xEventGroupSetBits(lcdFlags,LCD_DATA_CHNGE );
- }
+
 }
 /*
  *
  *
  */
+static uint8_t cursor_x = 0;
+static uint8_t cursor_y = 0;
+static uint8_t cursor_satatus = 0;
+
 void LCD_SET_Cursor( uint8_t status, uint8_t x, uint8_t y)
 {
-
+	cursor_x = x;
+	cursor_y = y;
+	cursor_satatus = status;
 
 }
 void LCD_Cursor_Off()
@@ -92,15 +91,6 @@ void LCD_Cursor_Off()
 
 static void WriteByte( uint8_t data)
 {
-	/*GPIO_InitTypeDef GPIO_InitStruct = {0};
-	 GPIO_InitStruct.Pin = LCD_0_Pin|LCD_1_Pin|LCD_2_Pin | LCD_3_Pin|LCD_4_Pin
-	                          |LCD_5_Pin|LCD_6_Pin|LCD_7_Pin;
-	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-*/
-
 	LCD_0_GPIO_Port->ODR = (LCD_0_GPIO_Port->ODR & 0xFF00) | data;
 }
 
@@ -188,7 +178,7 @@ void Init16X2LCD()
 {
 	volatile uint8_t temp;
 	lcdFlags= xEventGroupCreateStatic(&lcdFlagCreatedEventGroup );
-	HAL_GPIO_WritePin(Ind_LED_GPIO_Port,Ind_LED_Pin, GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(Ind_LED_GPIO_Port,Ind_LED_Pin, GPIO_PIN_SET);
 	RESET_E;
 	osDelay(100);
 	LCD_SendCommand(LCD_FUNSTION_SET  | DB_4 );
@@ -200,7 +190,6 @@ void Init16X2LCD()
 	LCD_SendCommand(LCD_FUNSTION_SET  | DB_4| DB_3  | DB_2 );
 	LCD_SendCommand(LCD_CLEAR );
 	LCD_SendCommand(LCD_ON_OFF  | DB_2 );
-
 	osDelay(10);
 	LCD_SendCommand(LCD_ENTRY_MODE_SET | DB_1 );
 	LCD_SendCommand(LCD_CURRSOR_SHIFT| DB_3 | DB_2);
@@ -212,70 +201,95 @@ void Init16X2LCD()
 void vRedrawLCD()
 {
     uint8_t ddd[20];
-	EventBits_t redraw_flags;
 
-	redraw_flags = xEventGroupWaitBits(lcdFlags, UP_STRING | DOWN_STRING ,pdTRUE,pdFALSE,0);
-	if (redraw_flags & UP_STRING )
+
+	memcpy(ddd,LCD_BUFFER,LED_STRING_LEN);
+	for (uint8_t i = 0;i < LED_STRING_LEN;i++)
 	{
-		memcpy(ddd,LCD_BUFFER,LED_STRING_LEN);
-		for (uint8_t i = 0;i < LED_STRING_LEN;i++)
+		if (ddd[i]!=LCD_OUT_BUFFER[i])
 		{
-			if (ddd[i]!=LCD_OUT_BUFFER[i])
-			{
 
-				LCD_SendCommand(0x80 |  i);
-				if (i==0)
-					{
-					LCD_SendCommand(LCD_RETURN_HOME);
-					vTaskDelay(2);
-					}
-				else
-					LCD_SendCommand(0x80 | i);
-				if (ddd[i] == 0)
-				{
-					LCD_SendData(0x20);
-				}
-				else
-				{
-					LCD_SendData(ddd[i]);
-				}
+			LCD_SendCommand(0x80 |  i);
+			if (i==0)
+			{
+				LCD_SendCommand(LCD_RETURN_HOME);
+				vTaskDelay(2);
+			}
+			else
+			LCD_SendCommand(0x80 | i);
+			if (ddd[i] == 0)
+			{
+				LCD_SendData(0x20);
+			}
+			else
+			{
+				LCD_SendData(ddd[i]);
 			}
 		}
-		memcpy(LCD_OUT_BUFFER,LCD_BUFFER,LED_STRING_LEN);
 	}
-	if (redraw_flags & DOWN_STRING )
-	{
-		memcpy(ddd,&LCD_BUFFER[LED_STRING_LEN ],LED_STRING_LEN);
+	memcpy(LCD_OUT_BUFFER,LCD_BUFFER,LED_STRING_LEN);
+	memcpy(ddd,&LCD_BUFFER[LED_STRING_LEN ],LED_STRING_LEN);
 
-		for (uint8_t i = 0;i< LED_STRING_LEN;i++)
+	for (uint8_t i = 0;i< LED_STRING_LEN;i++)
+	{
+		if (ddd[i]!=LCD_OUT_BUFFER[i+ LED_STRING_LEN])
 		{
-			if (ddd[i]!=LCD_OUT_BUFFER[i+ LED_STRING_LEN])
+			LCD_SendCommand(0x80 | 0x40 | i);
+			if (ddd[i] == 0)
 			{
-				LCD_SendCommand(0x80 | 0x40 | i);
-				if (ddd[i] == 0)
-				{
-					LCD_SendData(0x20);
-				}
-				else
-				{
-					LCD_SendData(ddd[i]);
-				}
+				LCD_SendData(0x20);
+			}
+			else
+			{
+				LCD_SendData(ddd[i]);
 			}
 		}
-		memcpy(&LCD_OUT_BUFFER[LED_STRING_LEN ],&LCD_BUFFER[LED_STRING_LEN ],LED_STRING_LEN);
 	}
+	memcpy(&LCD_OUT_BUFFER[LED_STRING_LEN ],&LCD_BUFFER[LED_STRING_LEN ],LED_STRING_LEN);
 
+	if (cursor_satatus == 1)
+		  {
+			  uint8_t com = 0x80 | cursor_x;
+			  if (cursor_y==2)  com = com |  0x40;
+			  LCD_SendCommand(com );
+			  LCD_SendCommand(LCD_ON_OFF  | DB_2 | DB_1 | DB_0);
+		  }
+		  else
+		  {
+			  LCD_SendCommand(LCD_ON_OFF  | DB_2 );
+		  }
 
 }
+
+static uint8_t LCD_LED_State = 0;
+void LCD_LED_ON()
+{
+	LCD_LED_State = 1;
+}
+void LCD_LED_OFF()
+{
+	LCD_LED_State = 0;
+}
+
 /*
  * Таск перерисовывет данные на LCD
  */
 void LCD_Task(void *argument)
 {
+	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
 	Init16X2LCD();
+	LCD_LED_ON();
 	while(1)
 	{
 		vTaskDelay(DISPALY_REDRAW_TIME);
-		vRedrawLCD();
+		if (xEventGroupGetBits(system_event) & LCD_OFF)
+		{
+			HAL_GPIO_WritePin(Ind_LED_GPIO_Port,Ind_LED_Pin, GPIO_PIN_RESET);
+		}
+		else
+		{
+			HAL_GPIO_WritePin(Ind_LED_GPIO_Port,Ind_LED_Pin, (LCD_LED_State == 0) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+			vRedrawLCD();
+		}
 	}
 }

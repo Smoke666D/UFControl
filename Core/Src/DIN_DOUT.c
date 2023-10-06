@@ -26,9 +26,9 @@ void PL_RESET()
 
 #define DATA_LOAD_READY 0x01
 #define DATA_VALID_TIMES 3U
-uint8_t PL_STATE = 0;
-uint8_t pDATA[6];
-uint8_t data_check_counter = 0;
+static uint8_t PL_STATE = 0;
+static uint8_t pDATA[6];
+static uint8_t data_check_counter = 0;
 
 uint8_t data[6];
 uint8_t mask[6][DATA_VALID_TIMES];
@@ -84,7 +84,7 @@ static uint8_t RegisterDATALoad()
 
 			break;
 		case 2:
-			HAL_SPI_Receive_DMA(&hspi2,&pDATA,6U);
+			HAL_SPI_Receive_DMA(&hspi2,pDATA,6U);
 			PL_STATE = 3;
 			break;
 		case 3:
@@ -93,13 +93,13 @@ static uint8_t RegisterDATALoad()
 			{
 				xEventGroupClearBits(pREGEvent,DATA_LOAD_READY);
 				PL_STATE = 0;
-			}
-			for (i=0;i <6 ;i++)
-			{
-				mask[i][data_check_counter] = data[i] ^ pDATA[i];
+				for (i=0;i <6 ;i++)
+				{
+					mask[i][data_check_counter] = data[i] ^ pDATA[i];
 
+				}
+				data_check_counter++;
 			}
-			data_check_counter++;
 			break;
 
 
@@ -194,14 +194,29 @@ static void vSetOut( uint8_t out, uint8_t state)
 
 void StartDIN_DOUT(void *argument)
 {
-	EventGroupHandle_t system_event = NULL;
 	uint8_t init_state = 0;
+
+	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
 	vDINInit();
 	while(1)
 	{
 		vTaskDelay(10);
-		for (uint8_t i = 0; i <DIN_COUNT; i++)
+		if (xEventGroupGetBits(system_event) & SYSTEM_IDLE)
 		{
+			vSetOut(ALARM_OUT,  0 );
+			vSetOut(ALARM_LAMP, 0 );
+			vSetOut(POW1,       0 );
+			vSetOut(POW2,       0 );
+			vSetOut(POW_OUT,    0 );
+			vSetOut(POW_ON,     0 );
+			vSetOut(LOCAL_LAMP, 0 );
+			xEventGroupWaitBits(system_event, SYSTEM_REINIT, pdTRUE, pdTRUE, portMAX_DELAY );
+			init_state = 0;
+		}
+		else
+		{
+			for (uint8_t i = 0; i <DIN_COUNT; i++)
+			{
 				if ( xDinConfig[i].eInputType != RPM_CONFIG )
 				{
 					uint8_t uсDinState = HAL_GPIO_ReadPin( xDinPortConfig[i].GPIOx, xDinPortConfig[i].Pin);
@@ -211,6 +226,7 @@ void StartDIN_DOUT(void *argument)
 							if (xDinConfig[i].ulCounter > ( (xDinConfig[i].ucTempValue == GPIO_PIN_RESET) ? xDinConfig[i].ulHighCounter : xDinConfig[i].ulLowCounter ) )
 							{
 									xDinConfig[i].ucValue = uсDinState  ^ ( (~xDinConfig[i].eInputType) & 0x1);
+
 								    xDinConfig[i].ucTempValue = uсDinState ;
 							}
 					}
@@ -218,44 +234,41 @@ void StartDIN_DOUT(void *argument)
 					{
 						xDinConfig[i].ulCounter = 0U;
 					}
-			  }
+				}
+			}
+			if   (RegisterDATALoad() == 1)
+			{
+				uint32_t bdata = data[5] | data[4]<<8 | (data[3] & 0x3F)<<16;
+				int32SetData(LAM_ERROR_REG_LSB, ~bdata & 0x003FFFFF);
+				bdata = data[3]>>6 | data[1]<<10 | (data[0] & 0x0F)<<18 | data[2] <<2;
+				int32SetData(LAM_ERROR_REG_MSB, ~bdata & 0x003FFFFF);
+				if ( init_state == 0 )
+				{
+					init_state = 1;
+					xEventGroupSetBits(system_event,   DIN_SYSTEM_READY );
+				}
+			}
+			int16SetRegisterBit(DEVICE_ALARM_REG,  DOOR_ALARM ,   0);//  (uint16_t)xDinConfig[DOOR].ucValue );
+			int8SetRegisterBit(DEVICE_INPUT_REG,  IN_DOOR_ALARM,  0);// (uint16_t)xDinConfig[DOOR].ucValue );
+			int16SetRegisterBit(DEVICE_ALARM_REG,  FIRE_FLAG,       (uint16_t)xDinConfig[FIRE].ucValue);
+			int8SetRegisterBit(DEVICE_INPUT_REG,  IN_FIRE_ALARM,   (uint16_t)xDinConfig[FIRE].ucValue );
+			int8SetRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG,     (uint16_t)xDinConfig[REMOTE].ucValue);
+			int8SetRegisterBit(DEVICE_INPUT_REG,  IN_REMOTE_FLAG,   (uint16_t)xDinConfig[REMOTE].ucValue );
+			int8SetRegisterBit(DEVICE_STATUS_REG, LOCAL_FLAG,      (uint16_t) xDinConfig[LOCAL_C].ucValue);
+			int8SetRegisterBit(DEVICE_INPUT_REG,  IN_LOCAL_FLAG,   (uint16_t)xDinConfig[LOCAL_C].ucValue );
+			int8SetRegisterBit(DEVICE_STATUS_REG, REMOTE_ACT_FLAG, (uint16_t)xDinConfig[REMOTE_ACT].ucValue);
+			int8SetRegisterBit(DEVICE_INPUT_REG  ,IN_REMOTE_ACT,   (uint16_t)xDinConfig[REMOTE_ACT].ucValue );
+		    //управление выходами
+			uint8_t output_status = int8GetRegister(DEVICE_OUTPUT_REG);
+			vSetOut(ALARM_OUT,  output_status & (0x01<<ALARM_OUT_FLAG) );
+			vSetOut(ALARM_LAMP, output_status & (0x01<<ALARM_OUT_FLAG) );
+			vSetOut(POW1,       output_status & (0x01<<WORK_OUT_FLAG ) );
+			vSetOut(POW2,       output_status & (0x01<<WORK_OUT_FLAG ) );
+			vSetOut(POW_OUT,    output_status & (0x01<<WORK_OUT_FLAG ) );
+			vSetOut(POW_ON,     output_status & (0x01<<WORK_OUT_FLAG ) );
+			vSetOut(LOCAL_LAMP, output_status & (0x01<<LOCAL_OUT_FLAG) );
 		}
-		if   (RegisterDATALoad() == 1)
-		{
-			uint32_t bdata = data[5] | data[4]<<8 | (data[3] & 0x3F)<<16;
-			vSetRegister(LAM_ERROR_REG_LSB, ~bdata & 0x003FFFFF);
-		    bdata = data[3]>>6 | data[1]<<10 | (data[0] & 0x0F)<<18 | data[2] <<2;
-			vSetRegister(LAM_ERROR_REG_MSB, ~bdata & 0x003FFFFF);
-
-		}
-		vSetRegisterBit(DEVICE_ALARM_REG,  DOOR_ALARM ,     (uint16_t)xDinConfig[DOOR].ucValue );
-		vSetRegInputBit(INPUT_STATUS,      MB_DOOR_ALARM,   (uint16_t)xDinConfig[DOOR].ucValue );
-		vSetRegisterBit(DEVICE_ALARM_REG,  FIRE_FLAG,       (uint16_t)xDinConfig[FIRE].ucValue);
-		vSetRegInputBit(INPUT_STATUS,      MB_FIRE_ALARM,   (uint16_t)xDinConfig[DOOR].ucValue );
-		vSetRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG,     (uint16_t)xDinConfig[REMOTE].ucValue);
-		vSetRegInputBit(INPUT_STATUS,      MB_REMOTE_FLAG,   (uint16_t)xDinConfig[DOOR].ucValue );
-		vSetRegisterBit(DEVICE_STATUS_REG, LOCAL_FLAG,      (uint16_t) xDinConfig[LOCAL_C].ucValue);
-		vSetRegInputBit(INPUT_STATUS,      MB_LOCAL_FLAG,   (uint16_t)xDinConfig[DOOR].ucValue );
-		vSetRegisterBit(DEVICE_STATUS_REG, REMOTE_ACT_FLAG, (uint16_t)xDinConfig[REMOTE_ACT].ucValue);
-		vSetRegInputBit(INPUT_STATUS,      MB_REMOTE_ACT,   (uint16_t)xDinConfig[DOOR].ucValue );
-		/*if ( init_state == 0 )
-		{
-			init_state = 1;
-			xEventGroupSetBits(system_event,   DIN_SYSTEM_READY);
-		}*/
-		//управление выходами
-		uint32_t status = uGetRegister(DEVICE_STATUS_REG);
-		vSetOut(ALARM_OUT, status & (0x01<<ALARM_OUT_FLAG) );
-		vSetOut(ALARM_LAMP, status & (0x01<<ALARM_OUT_FLAG) );
-		vSetOut(POW1, status & (0x01<<WORK_OUT_FLAG ) );
-		vSetOut(POW2, status & (0x01<<WORK_OUT_FLAG ) );
-		vSetOut(POW_OUT, status & (0x01<<WORK_OUT_FLAG ) );
-		vSetOut(POW_ON, status & (0x01<<WORK_OUT_FLAG ) );
-		vSetOut(LOCAL_LAMP, status & (0x01<<LOCAL_FLAG) );
-
-
 	}
-
 }
 
 
@@ -279,7 +292,8 @@ QueueHandle_t pGetKeyboardQueue( void )
   return pKeyboardQueue;
 }
 
-
+#define KEYPAD_TIME_OUT  1000
+static uint16_t key_no_press_timeout = 0;
 void vKeyboardTask( void * argument )
 {
   KeyEvent      TEvent;
@@ -300,7 +314,7 @@ void vKeyboardTask( void * argument )
         TEvent.Status  = BRAKECODE;
         //xQueueReset( pKeyboardQueue );
         xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-
+        key_no_press_timeout = 0;
       }
       else
       {
@@ -316,7 +330,7 @@ void vKeyboardTask( void * argument )
             STATUS[i]      = KEY_ON;
             TEvent.Status  = MAKECODE;
             xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-
+            key_no_press_timeout = 0;
           }
         }
         else if ( (STATUS[i] != KEY_OFF)  && ( TK[i] == KEY_ON_STATE ) )
@@ -331,7 +345,7 @@ void vKeyboardTask( void * argument )
                 COUNTERS[i]    = 0U;
                 TEvent.Status  = MAKECODE;
                 xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-
+                key_no_press_timeout  = 0;
               }
               break;
             case KEY_ON_REPEAT:
@@ -340,7 +354,7 @@ void vKeyboardTask( void * argument )
                 COUNTERS[i]    = 0U;
                 TEvent.Status  = MAKECODE;
                 xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-
+                key_no_press_timeout  = 0;
               }
               break;
             default:
@@ -348,6 +362,14 @@ void vKeyboardTask( void * argument )
           }
         }
       }
+    }
+    if (++key_no_press_timeout > KEYPAD_TIME_OUT )
+    {
+    	key_no_press_timeout = 0;
+    	key_no_press_timeout = 0U;
+    	TEvent.KeyCode     = time_out;
+    	TEvent.Status      = MAKECODE;
+    	xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
     }
   }
   return;

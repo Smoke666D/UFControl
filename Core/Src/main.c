@@ -45,7 +45,6 @@ typedef StaticEventGroup_t osStaticEventGroupDef_t;
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 ADC_HandleTypeDef hadc3;
-DMA_HandleTypeDef hdma_adc3;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -77,7 +76,7 @@ const osThreadAttr_t LCD_attributes = {
   .cb_size = sizeof(LCDControlBlock),
   .stack_mem = &LCDBuffer[0],
   .stack_size = sizeof(LCDBuffer),
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 /* Definitions for DIN_DOUT_Task */
 osThreadId_t DIN_DOUT_TaskHandle;
@@ -151,6 +150,18 @@ const osThreadAttr_t UARTTask_attributes = {
   .stack_size = sizeof(UARTTaskBuffer),
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for MenuTask */
+osThreadId_t MenuTaskHandle;
+uint32_t MenuTaskBuffer[ 256 ];
+osStaticThreadDef_t MenuTaskControlBlock;
+const osThreadAttr_t MenuTask_attributes = {
+  .name = "MenuTask",
+  .cb_mem = &MenuTaskControlBlock,
+  .cb_size = sizeof(MenuTaskControlBlock),
+  .stack_mem = &MenuTaskBuffer[0],
+  .stack_size = sizeof(MenuTaskBuffer),
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for TimersEvent */
 osEventFlagsId_t TimersEventHandle;
 osStaticEventGroupDef_t TimersEventControlBlock;
@@ -216,6 +227,7 @@ extern void LAMPstart(void *argument);
 extern void StartMb(void *argument);
 extern void StartControlTask(void *argument);
 extern void StartUARTTask(void *argument);
+extern void StartMenuTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -284,7 +296,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  MX_DMA_Init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -300,7 +312,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
+  eEEPROM(&hi2c1);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -333,19 +345,24 @@ int main(void)
   DIN_DOUT_TaskHandle = osThreadNew(StartDIN_DOUT, NULL, &DIN_DOUT_Task_attributes);
 
   /* creation of KeyboardTask */
- KeyboardTaskHandle = osThreadNew(vKeyboardTask, NULL, &KeyboardTask_attributes);
+  KeyboardTaskHandle = osThreadNew(vKeyboardTask, NULL, &KeyboardTask_attributes);
 
   /* creation of LAP_task */
-//  LAP_taskHandle = osThreadNew(LAMPstart, NULL, &LAP_task_attributes);
-
-  /* creation of mbTask */
-//  mbTaskHandle = osThreadNew(StartMb, NULL, &mbTask_attributes);
-
-  /* creation of ControlTask */
- // ControlTaskHandle = osThreadNew(StartControlTask, NULL, &ControlTask_attributes);
+  LAP_taskHandle = osThreadNew(LAMPstart, NULL, &LAP_task_attributes);
 
   /* creation of UARTTask */
- // UARTTaskHandle = osThreadNew(StartUARTTask, NULL, &UARTTask_attributes);
+  UARTTaskHandle = osThreadNew(StartUARTTask, NULL, &UARTTask_attributes);
+
+  /* creation of mbTask */
+  mbTaskHandle = osThreadNew(StartMb, NULL, &mbTask_attributes);
+
+  /* creation of ControlTask */
+  ControlTaskHandle = osThreadNew(StartControlTask, NULL, &ControlTask_attributes);
+
+
+
+  /* creation of MenuTask */
+  MenuTaskHandle = osThreadNew(StartMenuTask, NULL, &MenuTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -512,12 +529,12 @@ static void MX_ADC3_Init(void)
   /** Common config
   */
   hadc3.Instance = ADC3;
-  hadc3.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc3.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc3.Init.ContinuousConvMode = DISABLE;
   hadc3.Init.DiscontinuousConvMode = DISABLE;
   hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc3.Init.NbrOfConversion = 1;
+  hadc3.Init.NbrOfConversion = 3;
   if (HAL_ADC_Init(&hadc3) != HAL_OK)
   {
     Error_Handler();
@@ -528,6 +545,22 @@ static void MX_ADC3_Init(void)
   sConfig.Channel = ADC_CHANNEL_3;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Rank = ADC_REGULAR_RANK_2;
+  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Rank = ADC_REGULAR_RANK_3;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -806,11 +839,11 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
   huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.WordLength = UART_WORDLENGTH_9B;
   huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Parity = UART_PARITY_ODD;
   huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_CTS;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
@@ -829,16 +862,12 @@ static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
-  __HAL_RCC_DMA2_CLK_ENABLE();
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Channel4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
-  /* DMA2_Channel4_5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Channel4_5_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Channel4_5_IRQn);
 
 }
 
@@ -935,7 +964,7 @@ vMenuInit();
   /* Infinite loop */
   for(;;)
   {
-	  vMenu();
+
     osDelay(1);
   }
   /* USER CODE END 5 */

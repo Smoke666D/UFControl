@@ -1,3 +1,3 @@
 ../Core/Src/EEPROM.c:15:6:eEEPROM	16	static
-../Core/Src/EEPROM.c:21:22:eEEPROMWr	40	static
-../Core/Src/EEPROM.c:84:22:eEEPROMRd	32	static
+../Core/Src/EEPROM.c:21:22:eEEPROMWr	56	static
+../Core/Src/EEPROM.c:83:22:eEEPROMRd	40	static

@@ -5,297 +5,713 @@
  *      Author: i.dymov
  */
 
+
 #include "data_model.h"
 #include "stdio.h"
+#include "math.h"
 
 #define STRING_BUFFER_SIZE 4U
-
-static ViewBuffer_t StringBuffer[STRING_BUFFER_SIZE];
-
-const DataLimit_t MODBUS_DATA =
-{
-	.MaxValue = 99,
-	.MinValie = 1,
-	.data_step = 1,
-    .data_type = INTEGER_DATA,
-	.data_size = 1,
-} ;
-
-const DataLimit_t DISCRET_STATE =
-{
-	.MaxValue = 1,
-	.MinValie = 0,
-	.data_step = 1,
-    .data_type = INTEGER_DATA,
-	.data_size = 1,
-};
-
+extern RTC_HandleTypeDef hrtc;
 uint32_t mod_bus_addr = 0;
-sDataModelUnit  MODBUS_REG =
-{
-	.limits = &MODBUS_DATA,
-	.mode = CONFIG_NOT_READ,
-	.data = &mod_bus_addr,
-	.reg_id = MOD_BUS_ADDRES,
-	.model_type = REGISTER_TYPE,
-	.data_view = NULL,
-};
-
 uint32_t dev_mod = 0;
-sDataModelUnit  DEV_MODE =
-{
-	.limits = &MODBUS_DATA,
-	.mode = CONFIG_NOT_READ,
-	.data = &mod_bus_addr,
-	.reg_id = MOD_BUS_ADDRES,
-	.model_type = ENUM_TYPE,
-	.data_view = {"ЩИТ","SCADA"},
-};
-
-sDataModelUnit * DATA_MODEL_DATA[] = {&MODBUS_REG, &DEV_MODE };
-static uint8_t free_data_pointer = 0;
-uint16_t DATA_MODEL_REGISTER[REGISTER_COUNT];
-
+uint8_t DATA_MODEL_REGISTER[TOTAL_REGISTER_COUNT];
+static uint8_t EditFlag = 0;
+static uint32_t EditDATA = 0;
 uint8_t bytebuffer;
+static void vSetResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t index);
+static void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data);
+static void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data);
+static void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data);
+static void vSetLampCount(DATA_COMMNAD_TYPE cmd, char* Data);
+char const AllOk[] = "Все исправны";
+static const char * ErrorStrings[] ={ "Аварий нет",
+										"Открыта крышка",
+										"Пожарная тревога",
+										"Отказ одной лампы",
+										"Отказ 2+ ламп",
+										"Наработка 97%",
+										"Наработка 100%",
+										"Напряжение <198В",
+										"Напряжение<187В",
+										"Напряжение>250В"
+	};
 
-
-
-
-
-
-void vGetRegisteDataToString( uint8_t index, char * data )
+static void PrintString(uint8_t * dest,const char * source)
 {
-	uint8_t buf[5];
-	switch (GetRegisterData(index, buf) )
+	for (uint8_t i=0;i<20;i++)
 	{
-		case INTEGER_DATA:
-
-			 break;
-
+		dest[i] = source[i];
+		if (source[i] == 0) break;
 	}
-
-}
-
-
-void vGeRegisterForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
-{
-	  switch (cmd)
-	   {
-	   	   	  case mREAD:
-
-	   	   		   break;
-	   	   	   case mSAVE:
-	   	   		   break;
-	   	   	   case mESC:
-	   	   		   break;
-	   	   	   case mINC:
-
-	   	   		   break;
-	   	   	   case mDEC:
-	   	   		   break;
-	   }
-
-
-
-
-}
-
-
-static void UpdateStringBuffer( uint8_t ID, char * format)
-{
-	uint8_t find = STRING_BUFFER_SIZE;
-	for (uint8_t i= 0; i< STRING_BUFFER_SIZE; i++  )
-    {
-	     if (StringBuffer[i].ID == ID)
-	     {
-	    	 find  = i;
-	    	 break;
-		 }
-	}
-	if ( find == STRING_BUFFER_SIZE)
-	{
-		find = free_data_pointer;
-		free_data_pointer++;
-		if ( free_data_pointer>=STRING_BUFFER_SIZE )
-		{
-			free_data_pointer = 0;
-		}
-	}
-	if (DATA_MODEL_DATA[ID]->mode == CONFIG_NOT_READ)
-	{
-			switch (DATA_MODEL_DATA[ID]->limits->data_type)
-			{
-				case BOOLEAN_DATA:
-				case INTEGER_DATA:
-					uint32_t bd;
-					eEEPROMReadRegister(DATA_MODEL_DATA[ID]->reg_id,&bd);
-					* ( (int *)DATA_MODEL_DATA[ID]->data ) = bd;
-					if (DATA_MODEL_DATA[ID]->model_type == REGISTER_TYPE)
-					{
-						sprintf(StringBuffer[find].data,format,bd);
-					}
-					else
-					{
-						strcpy(StringBuffer[find].data,DATA_MODEL_DATA[ID]->data_view[bd]);
-					}
-				case NUMBER_DATA:
-					float  fd;
-					eEEPROMReadRegister(DATA_MODEL_DATA[ID]->reg_id,&fd);
-					sprintf(StringBuffer[find].data,format,fd);
-					* ((float *)DATA_MODEL_DATA[ID]->data) = fd;
-					break;
-				case TIME_STAMP:
-				default:
-					break;
-			}
-	}
-	DATA_MODEL_DATA[ID]->mode = CONFIG_READ;
-}
-
-static void FreeStringBuffer(uint8_t ID)
-{
-	DATA_MODEL_DATA[ID]->mode = CONFIG_NOT_READ;
-}
-
-static void vIncData(uint8_t ID)
-{
-
-	switch (DATA_MODEL_DATA[ID]->limits->data_type)
-	{
-		case BOOLEAN_DATA:
-		case INTEGER_DATA:
-			int * pint = (int *)DATA_MODEL_DATA[ID]->data;
-			(* pint)+=(int)DATA_MODEL_DATA[ID]->limits->data_step;
-			if  ( (* pint )  > (int)DATA_MODEL_DATA[ID]->limits->MaxValue )
-			{
-				*pint = (int) DATA_MODEL_DATA[ID]->limits->MaxValue;
-			}
-			break;
-		case NUMBER_DATA:
-			float * fint = (float *)DATA_MODEL_DATA[ID]->data;
-			(* fint)+=(float)DATA_MODEL_DATA[ID]->limits->data_step;
-			if  ( (* fint )  > (float)DATA_MODEL_DATA[ID]->limits->MaxValue )
-			{
-				*fint = (float) DATA_MODEL_DATA[ID]->limits->MaxValue;
-			}
-			break;
-		default:
-			break;
-	}
-	DATA_MODEL_DATA[ID]->mode = CONFIG_EDIT;
-}
-
-static void vDecData(uint8_t ID)
-{
-	switch (DATA_MODEL_DATA[ID]->limits->data_type)
-	{
-		case BOOLEAN_DATA:
-		case INTEGER_DATA:
-			int * pint = (int *)DATA_MODEL_DATA[ID]->data;
-			(* pint)-=(int)DATA_MODEL_DATA[ID]->limits->data_step;
-			if  ( (* pint )  < (int)DATA_MODEL_DATA[ID]->limits->MaxValue )
-			{
-				*pint = (int) DATA_MODEL_DATA[ID]->limits->MaxValue;
-			}
-			break;
-		case NUMBER_DATA:
-			float * fint = (float *)DATA_MODEL_DATA[ID]->data;
-			(* fint)-=(float)DATA_MODEL_DATA[ID]->limits->data_step;
-			if  ( (* fint )  < (float)DATA_MODEL_DATA[ID]->limits->MaxValue )
-			{
-				*fint = (float) DATA_MODEL_DATA[ID]->limits->MaxValue;
-			}
-			break;
-		default:
-			break;
-	}
-	DATA_MODEL_DATA[ID]->mode = CONFIG_EDIT;
-}
-
-
-static void  vSaveData(uint8_t ID)
-{
-	eEEPROMRegTypeWrite(DATA_MODEL_DATA[ID]->reg_id,DATA_MODEL_DATA[ID]->data,DATA_MODEL_DATA[ID]->limits->data_type );
 }
 /*
- * Функция возвращает строку из буфера с текущими состоянием переменной
+ *
  */
-static char * getBufRef( uint8_t ID)
+void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
-	for (uint8_t i= 0; i< STRING_BUFFER_SIZE; i++  )
+    uint8_t error_count = 0;
+    int16_t index = usGetDataViewIndex();
+    uint16_t error_reg = int16GetRegister(DEVICE_ALARM_REG);
+    for (uint8_t i=0;i< REMAIN_RESOURS_0;i++)
+    {
+    	if (error_reg & (0x1<<i)) error_count++;
+    }
+   	if  (index+1 > error_count )
+   	{
+   	 	index = (error_count == 0) ? 0 : error_count - 1;
+   	 	vSetDataViewIndex(index );
+   	}
+    switch (ID)
+    {
+    	case  SCREEN_INDEX_ID:
+    		sprintf(Data,"%u",(error_count ==0 ) ? 0: index + 1 );
+    		break;
+    	case TOTAL_ERROR_ID:
+    		sprintf(Data,"%u",error_count);
+    		break;
+    	case ERROR_DATA_ID:
+    		sprintf(Data,"%s",ErrorStrings[index]);
+    		break;
+    	default:
+
+    		break;
+
+    }
+    return;
+}
+/*
+ * Функция отобаражет ошибки работы ламп
+ */
+ void vGetLapmErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+ {
+	 uint16_t index = usGetDataViewIndex();
+	 uint16_t max_index = int8GetRegister(LAPM_ERROR_COUNT );
+	 if  (index >= max_index )
+	 {
+		 index = ( max_index == 0 ) ? 0 : max_index -1 ;
+		 vSetDataViewIndex( index );
+	 }
+	 switch (ID)
+	 {
+	 	 case SCREEN_INDEX_ID:
+	 		sprintf(Data,"%u",( max_index ==0 ) ? 0: index + 1 );
+	 		 break;
+	 	 case TOTAL_LAMP_ERROR_ID:
+	 		 sprintf(Data,"%u",int8GetRegister(LAPM_ERROR_COUNT ));
+	 		 break;
+	 	 case LAMP_ERROR_DATA_ID:
+	 		 if (int8GetRegister(LAPM_ERROR_COUNT ) == 0)
+	 		 {
+	 			sprintf(Data,"Все исправны");
+	 		 }
+	 		 else
+	 		 {
+	 			 uint8_t lamp_number =0;
+	 			 uint64_t buffer = int32GetData(LAM_ERROR_REG_MSB);
+	 			 buffer = buffer <<22;
+	 			 buffer = buffer | int32GetData(LAM_ERROR_REG_LSB);
+                  uint8_t i;
+	 			 for ( i = 0; i<int8GetRegister(LAMP_COUNT );i++)
+	 			 {
+	 				 if (buffer & 0x0001)
+	 				 {
+	 					 if (++lamp_number == (index + 1))
+	 						 break;
+	 				 }
+	 				 buffer =buffer >> 1;
+	 			 }
+	 			 sprintf(Data,"Отказ лампы N%02u",i+1);
+	 		 }
+
+	 		 break;
+	 	 default:
+	 		 break;
+	 }
+ }
+
+void vGetFBOHSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+	switch (cmd)
 	{
-		if (StringBuffer[i].ID == ID)
-		{
-			return StringBuffer[i].data;
-		}
+		case mREAD:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
+				sprintf(Data,"%u",(uint8_t) EditDATA );
+				break;
+		case mINC:
+				EditFlag = 1;
+				if ( ++EditDATA > 99 )  EditDATA = 99;
+				break;
+		case mDEC:
+				EditFlag = 1;
+				if (EditDATA  > 0)  EditDATA--;
+				break;
+		case mSAVE:
+				int16SetRegister(FBO_SIZE_L, (uint16_t)EditDATA );
+				eEEPROMWr(FBO_SIZE_L ,&DATA_MODEL_REGISTER[FBO_SIZE_L],2);
+		case mESC:
+				EditDATA = 0;
+				EditFlag = 0;
+				break;
 	}
-	return 0;
 }
 
-void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID, char * format )
+
+void vGetFBOWSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
-   /*switch (cmd)
-   {
-   	   	   case mREAD:
-   	   		   if (DATA_MODEL_DATA[ID]->mode != CONFIG_READ)
-   	   		   {
-   	   			   UpdateStringBuffer( ID, format);
-   	   		   }
-   	   		   strcpy(Data,(const char *)  getBufRef(ID) );
-   	   		   break;
-   	   	   case mSAVE:
-   	   		   vSaveData( ID );
-   	   		   break;
-   	   	   case mESC:
-   	   		   FreeStringBuffer(ID);
-   	   		   break;
-   	   	   case mINC:
-   	   		   vIncData( ID );
-   	   		   break;
-   	   	   case mDEC:
-   	   		   vDecData( ID );
-   	   		   break;
-   }*/
+	uint16_t index = usGetDataViewIndex();
+
+	if  (index  > 3 )
+	{
+		index = 3;
+		vSetDataViewIndex( index );
+	}
+	switch (cmd)
+	{
+		case mREAD:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
+				sprintf(Data,"%u",(uint8_t) EditDATA );
+				break;
+		case mINC:
+				EditFlag = 1;
+				EditDATA = EditDATA + pow(10,index);
+				if ( EditDATA > 9999 )  EditDATA = 9999;
+				break;
+		case mDEC:
+				EditFlag = 1;
+				if (EditDATA -pow(10,index) > 0 )
+					EditDATA = EditDATA - pow(10,index);
+				break;
+		case mSAVE:
+				int16SetRegister(FBO_SIZE_H, (uint16_t)EditDATA );
+				eEEPROMWr(FBO_SIZE_H ,&DATA_MODEL_REGISTER[FBO_SIZE_H],2);
+		case mESC:
+				EditDATA = 0;
+				EditFlag = 0;
+				break;
+	}
 }
+void vGetFBOLSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+	uint16_t index = usGetDataViewIndex();
+
+	if  (index  > 2 )
+	{
+		index = 2;
+		vSetDataViewIndex( index );
+	}
+	switch (cmd)
+	{
+		case mREAD:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
+				sprintf(Data,"%u",(uint8_t) EditDATA );
+				break;
+		case mINC:
+				EditFlag = 1;
+				EditDATA = EditDATA + pow(10,index);
+				if ( EditDATA > 999 )  EditDATA = 999;
+				break;
+		case mDEC:
+				EditFlag = 1;
+				if (EditDATA -pow(10,index) > 0 )
+					EditDATA = EditDATA - pow(10,index);
+				break;
+		case mSAVE:
+				int16SetRegister(FBO_SIZE_L, (uint16_t)EditDATA );
+				eEEPROMWr(FBO_SIZE_L ,&DATA_MODEL_REGISTER[FBO_SIZE_L],2);
+		case mESC:
+				EditDATA = 0;
+				EditFlag = 0;
+				break;
+	}
+}
+
+
+void vGetRecourceEditForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+	uint16_t index = usGetDataViewIndex();
+	uint16_t max_index = int8GetRegister(LAMP_COUNT);
+	if  (index  >= max_index )
+	{
+		index = ( max_index == 0 ) ? 0 : max_index -1 ;
+		vSetDataViewIndex( index );
+	}
+	switch (ID)
+	{
+		case ALL_LAMP_RES:
+			vSetAllResLampMenu( cmd,  Data);
+			break;
+		case SCREEN_INDEX_ID:
+
+			sprintf(Data,"%u",( max_index ==0 ) ? 0: index + 1 );
+			break;
+		case TOTAL_LAMP_DATA_ID:
+			vSetLampCount(cmd,Data);
+			break;
+		case LAMP_RES_DATA_ID:
+			vSetResLampMenu(cmd, Data, index);
+
+			break;
+		case LAMP_RES_PROCENT_DATA_ID:
+			sprintf(Data,"%u %%", int8GetRegister( LAMP_RESURSE_INDEX  + index) );
+		default:
+			break;
+	}
+}
+
+
+/*
+ * Функция отображения на экранае максимального времени работы ламм
+ */
+void vGetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+	uint16_t index = usGetDataViewIndex();
+	uint16_t max_index = int8GetRegister(LAMP_COUNT);
+	if  (index  >= max_index )
+	{
+		index = ( max_index == 0 ) ? 0 : max_index -1 ;
+		vSetDataViewIndex( index );
+	}
+	switch (ID)
+	{
+		case ALL_LAMP_RES:
+			vSetAllResLampMenu( cmd,  Data);
+			break;
+		case SCREEN_INDEX_ID:
+
+			sprintf(Data,"%u",( max_index ==0 ) ? 0: index + 1 );
+			break;
+		case TOTAL_LAMP_DATA_ID:
+			vSetLampCount(cmd,Data);
+			break;
+		case LAMP_RES_DATA_ID:
+			vSetResLampMenu(cmd, Data, index);
+
+			break;
+		case LAMP_RES_PROCENT_DATA_ID:
+			sprintf(Data,"%u %%", int8GetRegister( LAMP_RESURSE_INDEX  + index) );
+		default:
+			break;
+	}
+}
+
+
+
+ void vEditLampCount(DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+	switch (cmd)
+		{
+				case mREAD:
+					if (EditFlag == 0) EditDATA = int8GetRegister( LAMP_COUNT) ;
+					sprintf(Data,"%0u",(uint8_t) EditDATA );
+					break;
+				  case mINC:
+				    EditFlag = 1;
+				    if ( ++EditDATA > 44 )  EditDATA = 44;
+				    break;
+				 case mDEC:
+					EditFlag = 1;
+					if ( EditDATA > 0)  EditDATA--;
+					break;
+				case mSAVE:
+					int8SetRegister(LAMP_COUNT, (uint8_t)EditDATA );
+					eEEPROMWr(LAMP_COUNT ,&DATA_MODEL_REGISTER[LAMP_COUNT],1);
+				case mESC:
+					EditDATA = 0;
+					EditFlag = 0;
+					break;
+		}
+}
+
+
+static void vSetLampCount(DATA_COMMNAD_TYPE cmd, char* Data)
+{
+	switch (cmd)
+		{
+				case mREAD:
+					if (EditFlag == 0) EditDATA = int8GetRegister( LAMP_COUNT) ;
+					sprintf(Data,"%0u",(uint8_t) EditDATA );
+					break;
+				  case mINC:
+				    EditFlag = 1;
+				    if ( ++EditDATA > 44 )  EditDATA = 44;
+				    break;
+				 case mDEC:
+					EditFlag = 1;
+					if ( --EditDATA == 0)  EditDATA= 1;
+					break;
+				case mSAVE:
+					int8SetRegister(LAMP_COUNT, (uint8_t)EditDATA );
+					eEEPROMWr(LAMP_COUNT ,&DATA_MODEL_REGISTER[LAMP_COUNT],1);
+				case mESC:
+					EditDATA = 0;
+					EditFlag = 0;
+					break;
+		}
+}
+
+static RTC_TimeTypeDef time;
+void vSetTimeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+
+	switch (cmd)
+	{
+			case mREAD:
+				if (EditFlag == 0) HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+				sprintf(Data,"%u02:%u02:%u02",time.Hours,time.Minutes,time.Seconds);
+				break;
+			case mINC:
+				EditFlag = 1;
+				switch ( usGetDataViewIndex())
+				{
+					case 0:
+						if (++time.Hours >= 24) time.Hours = 0;
+						break;
+					case 1:
+						if (++time.Minutes >= 59) time.Minutes = 0;
+						break;
+					case 2:
+						if (++time.Seconds >= 59) time.Seconds = 0;
+						break;
+				}
+				break;
+			case mDEC:
+				EditFlag = 1;
+				switch ( usGetDataViewIndex())
+				{
+					case 0:
+						if (time.Hours >= 1) time.Hours--;
+						break;
+					case 1:
+						if (time.Minutes >= 1) time.Minutes--;
+						break;
+					case 2:
+						if (time.Seconds >= 1) time.Seconds--;
+						break;
+				}
+				break;
+			 case mSAVE:
+					EditFlag = 0;
+					HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+					break;
+			 case mESC:
+					EditFlag = 0;
+					break;
+
+	}
+}
+
+static  RTC_DateTypeDef date;
+void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+
+	switch (cmd)
+	{
+			case mREAD:
+				if (EditFlag == 0) HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+				sprintf(Data,"%u02.%u02.%u02",date.Date,date.Month,date.Year );
+				break;
+			case mINC:
+				EditFlag = 1;
+				switch ( usGetDataViewIndex())
+				{
+					case 0:
+						if (++date.Date >= 31) date.Date = 0;
+						break;
+					case 1:
+						if (++date.Month >= 12) date.Month = 0;
+						break;
+					case 2:
+						if (++date.Year >= 99) date.Year = 0;
+						break;
+				}
+				break;
+			case mDEC:
+				EditFlag = 1;
+				switch ( usGetDataViewIndex())
+				{
+					case 0:
+						if (date.Date  >= 1) date.Date --;
+						break;
+					case 1:
+						if (date.Month >= 1) date.Month--;
+						break;
+					case 2:
+						if (date.Year >= 1) date.Year--;
+						break;
+				}
+				break;
+			 case mSAVE:
+					EditFlag = 0;
+					HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+					break;
+			 case mESC:
+					EditFlag = 0;
+					break;
+
+	}
+}
+
+
+static void vSetResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t index)
+{
+	switch (cmd)
+	{
+	  case mREAD:
+		  if (EditFlag)
+			  sprintf(Data,"%u ч", (uint8_t)EditDATA * 1000);
+		  else
+			  sprintf(Data,"%u ч", (uint16_t)int8GetRegister(LAMP_MAX_TIME_INDEX + index) * 1000 );
+		  break;
+	  case mINC:
+		  EditFlag = 1;
+		  if ( ++EditDATA > 12 )  EditDATA= 1;
+		 break;
+	  case mDEC:
+		  EditFlag = 1;
+		  if ( --EditDATA == 0)  EditDATA= 1;
+		  break;
+	  case mSAVE:
+		  EditFlag = 0;
+		  int8SetRegister(LAMP_MAX_TIME_INDEX + index, (uint8_t)EditDATA );
+		  eEEPROMWr(LAMP_MAX_TIME_INDEX+ index ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + index],1);
+		  break;
+	  case mESC:
+		  EditFlag = 0;
+		  break;
+	}
+}
+
+
+
+
+static void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data)
+{
+	switch (cmd)
+	{
+	  case mREAD:
+		  sprintf(Data,"%u ч", (uint8_t)EditDATA * 1000);
+		  break;
+	  case mINC:
+		  EditFlag = 1;
+		  if ( ++EditDATA > 12 )  EditDATA= 1;
+		 break;
+	  case mDEC:
+		  EditFlag = 1;
+		  if ( --EditDATA == 0)  EditDATA= 1;
+		  break;
+	  case mSAVE:
+		  EditFlag = 0;
+		  for (uint8_t i= 0;i<(uint8_t) int8GetRegister( LAMP_COUNT) ;i++)
+		  {
+			  int8SetRegister(LAMP_MAX_TIME_INDEX + i, (uint8_t)EditDATA );
+		  }
+		  eEEPROMWr(LAMP_MAX_TIME_INDEX ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX],(uint8_t) int8GetRegister( LAMP_COUNT));
+		  break;
+	  case mESC:
+		  EditFlag = 0;
+		  break;
+	}
+}
+
+uint32_t int32GetData( uint16_t index )
+{
+	return  (*((uint32_t *)&DATA_MODEL_REGISTER[index]));
+}
+void int32SetData( uint16_t index, uint32_t data)
+{
+
+	(*((uint32_t *)&DATA_MODEL_REGISTER[index])) = data;
+}
+
+
+void int16SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data)
+{
+	if ( addres < TOTAL_REGISTER_COUNT  )
+	{
+		if (data != 0)
+			*((uint16_t *)&DATA_MODEL_REGISTER[addres]) |= 0x1 << bits;
+		else
+			*((uint16_t *)&DATA_MODEL_REGISTER[addres])  &= ~(0x1 << bits);
+	}
+}
+
+uint16_t int16GetRegister(uint16_t addres)
+{
+	return  (( addres < TOTAL_REGISTER_COUNT   ) ? *((uint16_t *)&DATA_MODEL_REGISTER[addres]) : 0);
+}
+
+void int16SetRegister(uint16_t addres, uint16_t data)
+{
+	(*((uint16_t *)&DATA_MODEL_REGISTER[addres])) = data;
+}
+
+
+void int8SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data)
+{
+	if ( addres < TOTAL_REGISTER_COUNT  )
+	{
+		if (data != 0)
+			DATA_MODEL_REGISTER[addres] |= 0x1 << bits;
+		else
+			DATA_MODEL_REGISTER[addres] &= ~(0x1 << bits);
+	}
+
+}
+
+uint8_t int8GetRegister(uint16_t addres)
+{
+	return  (( addres < TOTAL_REGISTER_COUNT   ) ? DATA_MODEL_REGISTER[addres] : 0);
+
+}
+void int8SetRegister( uint16_t addres , uint8_t data )
+{
+	if (addres < TOTAL_REGISTER_COUNT   )
+		DATA_MODEL_REGISTER[addres]  = data;
+	return;
+}
+
+void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
+{
+   switch (ID)
+   {
+   	   case STATUS_ID:
+   		   switch ( int8GetRegister(DEVICE_STATUS_REG) & 0x03)
+   		   {
+   		   	   case 0:
+   		   		sprintf(Data,"Выкл");
+   		   		break;
+   		   	   case 1:
+   		   		 sprintf(Data,"Дист");
+   		   		  break;
+   		   	   case 2:
+   		   	     sprintf(Data,"Мест");
+   		   		  break;
+   		   	   default:
+   		   		   break;
+   		   }
+   		   break;
+   	   case WORK_ID:
+   		    if  (  int8GetRegister(DEVICE_OUTPUT_REG) & (0x01<<WORK_OUT_FLAG) )
+   		    	sprintf(Data,"Д");
+   		    else
+   		    	sprintf(Data,"Н");
+   		   break;
+   	   case OPEN_ID:
+   		  if  ( int16GetRegister(DEVICE_ALARM_REG) & ( 0x01<<DOOR_ALARM)  )
+   		   	 sprintf(Data,"Закр");
+   		  else
+   		   	 sprintf(Data,"Откр");
+   		   break;
+   	   case ALARM_ID:
+   		   if  ( int16GetRegister(DEVICE_ALARM_REG)== 0 )
+   			   sprintf(Data,"Н");
+   		   else
+   			  sprintf(Data,"Д");
+   		   break;
+   	   case CUR_TIME_ID:
+   		   RTC_TimeTypeDef time;
+   		   HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+   		   RTC_DateTypeDef date;
+   		   HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+   		   sprintf(Data,"%02u:%02u:%02u  %02u.%02u.20%02u",time.Hours,time.Minutes,time.Seconds,date.Date,date.Month,date.Year);
+   		   break;
+       case MB_ADRESS_ID :
+    	   vGetMbTypeMenu(cmd, Data);
+    	   break;
+       case CONTROL_TYPE_ID:
+    	   vGetControlTypeMenu(cmd, Data);
+   		   break;
+       case  FBO_SIZE_ID:
+    	   sprintf(Data,"%04ux%03u-%02u ",int16GetRegister(FBO_SIZE_W ),int16GetRegister(FBO_SIZE_H ),int16GetRegister(FBO_SIZE_L ));
+    	   break;
+   	   default:
+   		   break;
+   }
+}
+
+static void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data)
+{
+	uint8_t data =0;
+	switch (cmd)
+	{
+	  case mREAD:
+		  data = (EditFlag == 0) ? int8GetRegister(MODBUS_ADDRES ) : (uint8_t)EditDATA;
+		  sprintf(Data,"%u", data);
+		  break;
+	  case mINC:
+		  EditFlag = 1;
+		  if ( ++EditDATA >= 255 )  EditDATA= 1;
+		 break;
+	  case mDEC:
+		  EditFlag = 1;
+		  if ( --EditDATA == 0)  EditDATA= 1;
+		  break;
+	  case mSAVE:
+		  EditFlag = 0;
+		  int8SetRegister(MODBUS_ADDRES, (uint8_t)EditDATA );
+		  data = (uint8_t)EditDATA;
+		   eEEPROMWr(MODBUS_ADDRES,&data,1);
+		  break;
+	  case mESC:
+		  EditFlag = 0;
+		  break;
+	}
+}
+
+static void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data)
+{
+	uint8_t data =0;
+	switch (cmd)
+	{
+	  case mREAD:
+		  data = (EditFlag == 0) ? int8GetRegister(CONTROL_TYPE_REG ) : (uint8_t)EditDATA;
+		  sprintf(Data,"%s",(data ? "ЩИТ" : "SCADA"));
+		  break;
+	  case mINC:
+		  EditFlag = 1;
+		  if ( EditDATA== 0 )  EditDATA= 1;
+		 break;
+	  case mDEC:
+		  if ( EditDATA == 1)  EditDATA= 0;
+		  EditFlag = 1;
+		  break;
+	  case mSAVE:
+		  EditFlag = 0;
+		  int8SetRegister(CONTROL_TYPE_REG, (uint8_t)EditDATA  );
+		  data = (uint8_t)EditDATA;
+		  eEEPROMWr(CONTROL_TYPE_REG,&data,1);
+		  break;
+	  case mESC:
+		  EditFlag = 0;
+		  break;
+	}
+
+}
+
 
 
 void InitDataModel()
 {
-
-
-}
-
-void SetData(uint16_t index, uint16_t data)
-{
-	if (index < REGISTER_COUNT)
+	EditFlag = 0;
+	if ( eEEPROMRd(0x00 ,DATA_MODEL_REGISTER , EEPROM_REGISER_COUNT) == EEPROM_OK)
 	{
-		DATA_MODEL_REGISTER[index] = data;
+		if (DATA_MODEL_REGISTER[VALID_CODE_ADDRES]!=VALID_CODE )
+		{
+			memset(DATA_MODEL_REGISTER,0,EEPROM_REGISER_COUNT);
+			DATA_MODEL_REGISTER[VALID_CODE_ADDRES] = VALID_CODE;
+			eEEPROMWr(VALID_CODE_ADDRES,DATA_MODEL_REGISTER,EEPROM_REGISER_COUNT);
+		}
 	}
-
 }
-uint16_t GetData(uint16_t index)
+
+/*
+ * Функция записи данных о времени работы ламп в EEPROM
+ */
+void vLAMWorkHoursWrite()
 {
-	return (index < REGISTER_COUNT) ? DATA_MODEL_REGISTER[index] : 0U;
-
+	eEEPROMWr(LAMP_WORK_HOURS_INDEX,DATA_MODEL_REGISTER,LAMP_WORK_HOURS_SIZE );
 }
- void vUPLOADDataToEEPROM()
- {
 
- }
 
- void vDOWNLOADDataFromEEPROM()
- {
 
- }
- uint8_t ucGetLampProc(uint8_t lamp_id)
- {
-	 if (lamp_id > MAX_LAMP_COUNT)
-	 {
-		 return 0;
-	 }
-	 else
-	 {
-		 return (uint8_t)(GetData(lamp_id + LAMP1)/GetData(lamp_id + LAMP1_MAX_TIME ));
-	 }
 
- }

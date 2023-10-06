@@ -6,7 +6,7 @@
  */
 
 
-#include "EEPROM.H"
+#include "main.h"
 
 static uint8_t sector_buffer[SECTOR_SIZE + ADDRESS_DATA];
 static I2C_HandleTypeDef  * I2C;
@@ -27,10 +27,9 @@ void eEEPROM(I2C_HandleTypeDef * hi2c2)
 
 	  if (len == sizeof(uint8_t))
 	  {
-		  for (uint8_t i = 0; i< ADDRESS_DATA; i++ )
-		  {
-		 		  sector_buffer[i] = (( addr >> BYTE_SHIFT*i ) & ADDRES_MASK ) ;
-		  }
+
+		  sector_buffer[0] =  (addr >> 8) & 0xFF ;
+		  sector_buffer[1] =  addr & 0xFF ;
 		  sector_buffer[ADDRESS_DATA] = *data;
 		  res =  (HAL_I2C_Master_Transmit(I2C, Device_ADD | GET_ADDR_MSB( addr) , (uint8_t *) sector_buffer, ADDRESS_DATA + sizeof(uint8_t) , EEPROM_TIME_OUT ) == HAL_OK ) ? EEPROM_OK : EEPROM_WRITE_ERROR ;
 	  }

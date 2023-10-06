@@ -35,7 +35,7 @@ FreeModbus/Src/portevent_m.o: ../FreeModbus/Src/portevent_m.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/lcd.h \
+ ../Core/Inc/EEPROM.h ../Core/Inc/lcd.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
@@ -53,7 +53,8 @@ FreeModbus/Src/portevent_m.o: ../FreeModbus/Src/portevent_m.c \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
- ../Core/Inc/lamp.h ../Core/Inc/MainFSM.h ../Core/Inc/registers.h
+ ../Core/Inc/lamp.h ../Core/Inc/MainFSM.h ../Core/Inc/data_model.h \
+ ../Core/Inc/menu.h
 ../FreeModbus/Src/../Inc/mb.h:
 ../FreeModbus/Src/../Inc/port.h:
 ../FreeModbus/Src/../Inc/mbconfig.h:
@@ -96,6 +97,7 @@ FreeModbus/Src/portevent_m.o: ../FreeModbus/Src/portevent_m.c \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
+../Core/Inc/EEPROM.h:
 ../Core/Inc/lcd.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
@@ -116,4 +118,5 @@ FreeModbus/Src/portevent_m.o: ../FreeModbus/Src/portevent_m.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
 ../Core/Inc/lamp.h:
 ../Core/Inc/MainFSM.h:
-../Core/Inc/registers.h:
+../Core/Inc/data_model.h:
+../Core/Inc/menu.h:

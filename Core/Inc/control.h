@@ -17,6 +17,7 @@ typedef enum
 	CONTROLLER_REINIT,
 	CONTROLLER_ALARM,
 	CONTROLLER_SHOTDOWN,
+	CONTROLLER_IDLE,
 } CONTROLLER_STATE_t;
 
 void StartControlTask(void *argument);

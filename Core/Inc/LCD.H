@@ -62,4 +62,6 @@ void LCD_SetString( char * data, uint8_t pos_x, uint8_t pos_y);
 void LCD_SET_Cursor( uint8_t status, uint8_t x, uint8_t y);
 void ClearScreenBuffer();
 void LCD_Cursor_Off();
+void LCD_LED_ON();
+void LCD_LED_OFF();
 #endif /* INC_LCD_H_ */

@@ -3,10 +3,25 @@
 
 uint16_t input_regs[REG_COUNT];
 uint16_t system_regs[REG_COUNT ];
+
+
 uint16_t usGetRegInput( REGS_t reg_addr)
 {
 	uint16_t usRes;
-    usRes = input_regs[reg_addr];
+	switch (reg_addr)
+	{
+		case 3:
+			usRes = int8GetRegister(LAMP_COUNT);
+			break;
+		case 4:
+			usRes = int8GetRegister(DEVICE_INPUT_REG);
+			break;
+		default:
+			usRes = 0;
+			break;
+	}
+
+
 	return  (usRes);
 }
 void vSetRegInput(REGS_t reg_addr, uint16_t data )
@@ -60,7 +75,7 @@ void StartMb(void *argument)
 {
 
 
-	 uint16_t addres = 0;
+	 uint16_t addres = 1;
 	// addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
 	 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
 	 eMBEnable(  );

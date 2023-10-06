@@ -14,19 +14,19 @@
  */
 
 #define Device_ADD 0x00A0
-#define EEPROM_SIZE 2048U
-#define EEPROM_ADRESS_TYPE uint16_t
-#define SECTOR_SIZE 16U
+#define EEPROM_SIZE (128U *1024U)
+#define EEPROM_ADRESS_TYPE uint32_t
+#define SECTOR_SIZE     256U
 #define EEPROM_TIME_OUT 100U
-#define EEPROM_MAX_ADRRES 0x7FF
+#define EEPROM_MAX_ADRRES 0x1FFFF
 #define SECTOR_WRITE_TIME_ms 5
-#define ADDRESS_SIZE_BYTES  2
+#define ADDRESS_SIZE_BYTES  3
 #define ADDRESS_DATA	    (ADDRESS_SIZE_BYTES - 1)
 /*   алгоритм получания данных для старшего байта адреса  */
 #define BYTE_SHIFT		    8U
-#define MSB_SHIFT           0x07
-#define MSB_MASK			0x0E
-#define GET_ADDR_MSB( ADDR) (( ADDR >>MSB_SHIFT ) & MSB_MASK )
+#define MSB_SHIFT           15
+#define MSB_MASK			0x02
+#define GET_ADDR_MSB( ADDR) (( ADDR >>15 ) & MSB_MASK )
 /*
  * Cистемные константы
  */
