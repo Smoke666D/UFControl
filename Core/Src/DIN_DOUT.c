@@ -248,8 +248,8 @@ void StartDIN_DOUT(void *argument)
 					xEventGroupSetBits(system_event,   DIN_SYSTEM_READY );
 				}
 			}
-			int16SetRegisterBit(DEVICE_ALARM_REG,  DOOR_ALARM ,   0);//  (uint16_t)xDinConfig[DOOR].ucValue );
-			int8SetRegisterBit(DEVICE_INPUT_REG,  IN_DOOR_ALARM,  0);// (uint16_t)xDinConfig[DOOR].ucValue );
+			int16SetRegisterBit(DEVICE_ALARM_REG,  DOOR_ALARM ,     (uint16_t)xDinConfig[DOOR].ucValue );
+			int8SetRegisterBit(DEVICE_INPUT_REG,  IN_DOOR_ALARM,   (uint16_t)xDinConfig[DOOR].ucValue );
 			int16SetRegisterBit(DEVICE_ALARM_REG,  FIRE_FLAG,       (uint16_t)xDinConfig[FIRE].ucValue);
 			int8SetRegisterBit(DEVICE_INPUT_REG,  IN_FIRE_ALARM,   (uint16_t)xDinConfig[FIRE].ucValue );
 			int8SetRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG,     (uint16_t)xDinConfig[REMOTE].ucValue);

@@ -135,57 +135,19 @@ void vGetFBOHSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	switch (cmd)
 	{
 		case mREAD:
-			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
 
-				sprintf(Data,"%02u",(uint8_t) EditDATA );
+				sprintf(Data,"%02u",(uint16_t) EditDATA );
 				break;
 		case mINC:
-			    if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
+			    if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
 				EditFlag = 1;
 				if ( ++EditDATA > 99 )  EditDATA = 99;
 				break;
 		case mDEC:
-			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
 				EditFlag = 1;
 				if (EditDATA  > 0)  EditDATA--;
-				break;
-		case mSAVE:
-				int16SetRegister(FBO_SIZE_L, (uint16_t)EditDATA );
-				eEEPROMWr(FBO_SIZE_L ,&DATA_MODEL_REGISTER[FBO_SIZE_L],2);
-		case mESC:
-				EditDATA = 0;
-				EditFlag = 0;
-				break;
-	}
-}
-
-
-void vGetFBOWSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
-{
-	uint16_t index = usGetDataViewIndex();
-    uint16_t step = 1;
-	if  (index  > 3 )
-	{
-		index = 3;
-		vSetDataViewIndex( index );
-	}
-	for (uint8_t i = 0; i< index;i++)
-		step = step *step;
-	switch (cmd)
-	{
-		case mREAD:
-			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
-				sprintf(Data,"%04u",(uint8_t) EditDATA );
-				break;
-		case mINC:
-				EditFlag = 1;
-				EditDATA = EditDATA + step;
-				if ( EditDATA > 9999 )  EditDATA = 9999;
-				break;
-		case mDEC:
-				EditFlag = 1;
-				if (EditDATA -step > 0 )
-					EditDATA = EditDATA - step;
 				break;
 		case mSAVE:
 				int16SetRegister(FBO_SIZE_H, (uint16_t)EditDATA );
@@ -196,29 +158,78 @@ void vGetFBOWSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 				break;
 	}
 }
-void vGetFBOLSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+
+static uint16_t step = 1;
+void vGetFBOWSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
 	uint16_t index = usGetDataViewIndex();
-	uint16_t step = 1;
-	if  (index  > 2 )
-	{
-		index = 2;
-		vSetDataViewIndex( index );
-	}
-	for (uint8_t i = 0; i< index;i++)
-		step = step *step;
+    switch (index)
+    {
+    	case 0:step = 1000;break;
+    	case 1:step = 100;break;
+    	case 2:step = 10;break;
+    	case 3:step = 1;break;
+
+    }
+
 	switch (cmd)
 	{
 		case mREAD:
-			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_H) ;
-				sprintf(Data,"%03u",(uint8_t) EditDATA );
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_W) ;
+				sprintf(Data,"%04u",(uint16_t) EditDATA );
 				break;
 		case mINC:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_W) ;
+				EditFlag = 1;
+				EditDATA = EditDATA + step;
+				if ( EditDATA > 9999 )  EditDATA = 9999;
+				break;
+		case mDEC:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_W) ;
+				EditFlag = 1;
+				if ((EditDATA -step)> 0 )
+					EditDATA = EditDATA - step;
+				break;
+		case mSAVE:
+				int16SetRegister(FBO_SIZE_W, (uint16_t)EditDATA );
+				eEEPROMWr(FBO_SIZE_W ,&DATA_MODEL_REGISTER[FBO_SIZE_W],2);
+		case mESC:
+				EditDATA = 0;
+				EditFlag = 0;
+
+				break;
+	}
+}
+
+
+
+void vGetFBOLSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+
+
+	uint16_t index = usGetDataViewIndex();
+	    switch (index)
+	    {
+
+	    	case 1:step = 100;break;
+	    	case 2:step = 10;break;
+	    	case 3:step = 1;break;
+
+	    }
+	switch (cmd)
+	{
+		case mREAD:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
+				sprintf(Data,"%03u",(uint16_t) EditDATA );
+				break;
+		case mINC:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
 				EditFlag = 1;
 				EditDATA = EditDATA + step;
 				if ( EditDATA > 999 )  EditDATA = 999;
 				break;
 		case mDEC:
+			if (EditFlag == 0) EditDATA = int16GetRegister( FBO_SIZE_L) ;
 				EditFlag = 1;
 				if ((EditDATA -step) > 0 )
 					EditDATA = EditDATA - step;
@@ -229,6 +240,7 @@ void vGetFBOLSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 		case mESC:
 				EditDATA = 0;
 				EditFlag = 0;
+
 				break;
 	}
 }
