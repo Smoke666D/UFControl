@@ -9,6 +9,7 @@
 #include "data_model.h"
 
 static  EventGroupHandle_t system_event = NULL;
+extern RTC_HandleTypeDef hrtc;
 
  void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
  {
@@ -24,8 +25,8 @@ static  EventGroupHandle_t system_event = NULL;
 void LAMPstart(void *argument)
 {
 	static 	LAMP_FSM_SATE lamp_fsm = WAIT_FOR_INIT;
-
 	static  uint8_t lamp_count = 0;
+	HAL_RTCEx_SetSecond_IT(&hrtc);
 	for(;;)
 	{
 		switch (lamp_fsm)
@@ -76,7 +77,14 @@ void LAMPstart(void *argument)
 							{
 								uint32_t new_recource_data = int32GetData(LAMP_WORK_HOURS_INDEX + i)+1;
 								int32SetData (LAMP_WORK_HOURS_INDEX + i,  new_recource_data );   //Если флага ошибок нет, инкриментируем счетчик времени работы
-								uint8_t resource = (uint8_t)  ( (new_recource_data/360.0) / ((float) int8GetRegister(LAMP_MAX_TIME_INDEX + i) * 1000 ) )*100;
+								float MAX = (float) int8GetRegister(LAMP_MAX_TIME_INDEX + i) * 1000 ;
+								uint8_t resource = 0;
+								if (MAX!=0)
+								{
+									resource = (uint8_t)  ((float)new_recource_data/36.0) /  MAX;
+
+								}
+
 								int8SetRegister( LAMP_RESURSE_INDEX + i , resource);
 								if (resource >=97) remain_resourse_3++;
 								if (resource >=100) remain_resourse_0++;
@@ -89,8 +97,7 @@ void LAMPstart(void *argument)
 					}
 					int8SetRegisterBit(DEVICE_ALARM_REG, REMAIN_RESOURS_3, (uint8_t)(remain_resourse_3 > 0 ) );
 					int8SetRegisterBit(DEVICE_ALARM_REG, REMAIN_RESOURS_0, (uint8_t)(remain_resourse_0 > 0 ) );
-					int8SetRegisterBit(DEVICE_ALARM_REG, ONE_LAMP_ERROR, (uint8_t)( error_count ==1 ) );
-					int8SetRegisterBit(DEVICE_ALARM_REG, TWO_LAMP_ERROR, (uint8_t)( error_count >=2 ) );
+					int8SetRegisterBit(DEVICE_ALARM_REG, LAMP_ERROR, (uint8_t)( error_count >0 ) );
 					int8SetRegister( LAPM_ERROR_COUNT  , error_count );
 		        }
 				break;

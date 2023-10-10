@@ -55,7 +55,7 @@ void StartControlTask(void *argument)
 		   xEventGroupSetBits(system_event,SYSTEM_IDLE);
 		   state = CONTROLLER_IDLE;
 	   }
-	   int8SetRegisterBit( DEVICE_OUTPUT_REG, ALARM_OUT_FLAG,  int16GetRegister(DEVICE_ALARM_REG) & ERROR_LAM_FLAG );
+	   int8SetRegisterBit( DEVICE_OUTPUT_REG, ALARM_OUT_FLAG,  int8GetRegister(DEVICE_ALARM_REG) & ERROR_LAM_FLAG );
 		switch (state)
 		{
 			case CONTROLLER_INIT:
@@ -68,7 +68,7 @@ void StartControlTask(void *argument)
 				control_type =  int8GetRegister(CONTROL_TYPE_REG );
 				break;
 			case CONTROLLER_WORK:
-				if (int16GetRegister(DEVICE_ALARM_REG) & DEVICE_ERROR_MASK )
+				if (int8GetRegister(DEVICE_ALARM_REG) & DEVICE_ERROR_MASK )
 				{
 					state = CONTROLLER_ALARM;
 
@@ -102,7 +102,7 @@ void StartControlTask(void *argument)
 				}
 				break;
 			case CONTROLLER_ALARM:
-				if (int8GetRegister(DEVICE_ALARM_REG) == 0 )
+				if (( int8GetRegister(DEVICE_ALARM_REG)  & DEVICE_ERROR_MASK )== 0 )
 				{
 						state = CONTROLLER_WORK;
 				}

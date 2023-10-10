@@ -26,8 +26,7 @@ char const AllOk[] = "Все исправны";
 static const char * ErrorStrings[] ={ "Аварий нет",
 										"Открыта крышка",
 										"Пожарная тревога",
-										"Отказ одной лампы",
-										"Отказ 2+ ламп",
+										"Отказ ламп",
 										"Наработка 97%",
 										"Наработка 100%",
 										"Напряжение <198В",
@@ -50,7 +49,7 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
     uint8_t error_count = 0;
     int16_t index = usGetDataViewIndex();
-    uint16_t error_reg = int16GetRegister(DEVICE_ALARM_REG);
+    uint16_t error_reg = int8GetRegister(DEVICE_ALARM_REG);
     for (uint8_t i=0;i< REMAIN_RESOURS_0;i++)
     {
     	if (error_reg & (0x1<<i)) error_count++;
@@ -69,7 +68,7 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
     		sprintf(Data,"%u",error_count);
     		break;
     	case ERROR_DATA_ID:
-    		sprintf(Data,"%s",ErrorStrings[index]);
+    		sprintf(Data,"%s",ErrorStrings[(error_count ==0 ) ? 0: index + 1]);
     		break;
     	default:
 
@@ -119,7 +118,10 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	 				 }
 	 				 buffer =buffer >> 1;
 	 			 }
-	 			 sprintf(Data,"Отказ лампы N%02u",i+1);
+	 			 if ( i!=int8GetRegister(LAMP_COUNT ))
+	 				 sprintf(Data,"Отказ лампы N%02u",i+1);
+	 			 else
+	 				sprintf(Data,"Все исправны");
 	 		 }
 
 	 		 break;
@@ -617,7 +619,7 @@ void int32SetData( uint16_t index, uint32_t data)
 }
 
 
-void int16SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data)
+/*void int16SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data)
 {
 	if ( addres < TOTAL_REGISTER_COUNT  )
 	{
@@ -626,7 +628,7 @@ void int16SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data)
 		else
 			*((uint16_t *)&DATA_MODEL_REGISTER[addres])  &= ~(0x1 << bits);
 	}
-}
+}*/
 
 uint16_t int16GetRegister(uint16_t addres)
 {
@@ -690,13 +692,13 @@ void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
    		    	sprintf(Data,"Н");
    		   break;
    	   case OPEN_ID:
-   		  if  ( int16GetRegister(DEVICE_ALARM_REG) & ( 0x01<<DOOR_ALARM)  )
-   		   	 sprintf(Data,"Закр");
-   		  else
+   		  if  ( int8GetRegister(DEVICE_ALARM_REG) & ( 0x01<<DOOR_ALARM)  )
    		   	 sprintf(Data,"Откр");
+   		  else
+   		   	 sprintf(Data,"Закр");
    		   break;
    	   case ALARM_ID:
-   		   if  ( int16GetRegister(DEVICE_ALARM_REG)== 0 )
+   		   if  ( int8GetRegister(DEVICE_ALARM_REG)== 0 )
    			   sprintf(Data,"Н");
    		   else
    			  sprintf(Data,"Д");

@@ -37,16 +37,15 @@
 
     #define DOOR_ALARM            0
     #define FIRE_FLAG             1
-    #define ONE_LAMP_ERROR 		  2
-	#define TWO_LAMP_ERROR  	  3
-	#define REMAIN_RESOURS_3      4
-	#define REMAIN_RESOURS_0      5
-    #define VOLT_187			  6
-    #define VOLT_196			  7
-    #define VOLT_250			  8
-#define ERROR_LAM_FLAG   ( (0x1<< FIRE_FLAG) | (0x1<<VOLT_187) | (0x1<<VOLT_250)	 | (0x1<<ONE_LAMP_ERROR) | (0x1<<REMAIN_RESOURS_0))
-#define  DEVICE_ERROR_MASK   ( (0x1<< FIRE_FLAG) | (0x1<<VOLT_187) | (0x1<<VOLT_250)	 | (0x1<<DOOR_ALARM) )
-#define DEVICE_STATUS_REG   (DEVICE_ALARM_REG + 1)
+    #define LAMP_ERROR 		      2
+	#define REMAIN_RESOURS_3      3
+	#define REMAIN_RESOURS_0      4
+    #define VOLT_187			  5
+    #define VOLT_196			  6
+    #define VOLT_250			  7
+#define ERROR_LAM_FLAG       ( (0x1<< FIRE_FLAG) | (0x1<<VOLT_187) | (0x1<<VOLT_250) | (0x1<<LAMP_ERROR) | (0x1<<REMAIN_RESOURS_0))
+#define  DEVICE_ERROR_MASK   ( (0x1<< FIRE_FLAG) | (0x1<<VOLT_187) | (0x1<<VOLT_250) | (0x1<<DOOR_ALARM) )
+#define DEVICE_STATUS_REG    (DEVICE_ALARM_REG + 1)
     #define REMOTE_FLAG     0
 	#define LOCAL_FLAG      1
     #define REMOTE_ACT_FLAG 2
@@ -115,7 +114,7 @@ typedef enum
 
 #define REGISTER_LAST_ADR (LAMP44   + 1)
 void vEditLampCount(DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
-void int16SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data);
+//void int16SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data);
 void int16SetRegister(uint16_t addres, uint16_t data);
 uint16_t int16GetRegister(uint16_t addres);
 void int8SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data);
