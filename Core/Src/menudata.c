@@ -51,10 +51,16 @@ static xScreenObjet const DeviceInfoScreen[] =
    { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Количество ламп", 0U, 0U , NULL },
    { 0U, 19U, LINE1, 1, DATA,  0U, (void*)vGetRecourceForMenu,  TOTAL_LAMP_DATA_ID, RIGTH_DATA  },
    { 0U, LEFT_OFFSET, LINE2, 5U, TEXT_STRING,  "Размер:", 0U, 0U , NULL },
-   { LAST_OBJECT, 20, LINE2, 2U, EDIT_DATA,  NULL, (void*)vGetDataForMenu, FBO_SIZE_ID , RIGTH_DATA    },
+   { LAST_OBJECT, 19, LINE2, 2U, EDIT_DATA,  NULL, (void*)vGetDataForMenu, FBO_SIZE_ID , RIGTH_DATA    },
 };
 
+static xScreenObjet const DeviceHardInfoScreen[] =
+{
+   { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Напряжение сети:", 0U, 0U , NULL },
+   { LAST_OBJECT, 10U, LINE2, 1, DATA,  0U, (void*)vGetRecourceForMenu, GET_V220, CENTER_DATA  },
 
+
+};
 
 
 static xScreenObjet const LampErrorScreen[]  =
@@ -160,23 +166,58 @@ static xScreenObjet const LampCountScreen[] =
    { LAST_OBJECT, 18U, LINE1, 2, EDIT_DATA,  0U, (void*)vEditLampCount,  TOTAL_LAMP_DATA_ID, RIGTH_DATA },
 };
 
-static xScreenObjet const FBOWSizeScreen[]=
+static xScreenObjet const FBOASizeScreen[]=
 {
-  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО XXXX", 0U, 0U , NULL },
-  { LAST_OBJECT, 15U, LINE2, 5U,  MULTI_EDIT_DATA,    0U,(void*)vGetFBOWSizeForMenu, 0, CENTER_DATA4  },
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО - A", 0U, 0U , NULL },
+  { LAST_OBJECT, 10U, LINE2, 5U,  MULTI_EDIT_DATA,    0U,(void*)vGetFBOSizeForMenu, A_SIZE, CENTER_DATA4  },
 };
 
-static xScreenObjet const FBOLSizeScreen[]=
+static xScreenObjet const FBOBSizeScreen[]=
 {
-  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО XXX", 0U, 0U , NULL },
-  { LAST_OBJECT, 15U, LINE2, 5U,  MULTI_EDIT_DATA,    0U,(void*)vGetFBOLSizeForMenu, 0, CENTER_DATA3  },
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО -B", 0U, 0U , NULL },
+  { LAST_OBJECT, 10U, LINE2, 5U,  MULTI_EDIT_DATA,    0U,(void*)vGetFBOSizeForMenu, B_SIZE, CENTER_DATA4  },
 };
 
-static xScreenObjet const FBOHSizeScreen[]=
+
+
+
+static xScreenObjet const  VLOWScreen[]=
 {
-  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО XX", 0U, 0U , NULL },
-  { LAST_OBJECT, 15U, LINE2, 5U,  EDIT_DATA,    0U,(void*)vGetFBOHSizeForMenu, 0, CENTER_DATA },
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "V нижний порог", 0U, 0U , NULL },
+  { LAST_OBJECT, 10U, LINE2, 5U,  EDIT_DATA,    0U,(void*)vGetVoltForMenu,  GET_V187, CENTER_DATA },
 };
+static xScreenObjet const  VLOWONScreen[]=
+{
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "V отмены ниж. порог", 0U, 0U , NULL },
+  { LAST_OBJECT, 10U, LINE2, 5U,  EDIT_DATA,    0U,(void*)vGetVoltForMenu,  GET_V187_ON, CENTER_DATA },
+};
+static xScreenObjet const  VWARScreen[]=
+{
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "V предупр.", 0U, 0U , NULL },
+  { LAST_OBJECT, 10U, LINE2, 5U,  EDIT_DATA,    0U,(void*)vGetVoltForMenu,  GET_V197, CENTER_DATA },
+};
+static xScreenObjet const VWARONScreen[]=
+{
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "V отмены предупр", 0U, 0U , NULL },
+  { LAST_OBJECT, 10U, LINE2, 5U,  EDIT_DATA,    0U,(void*)vGetVoltForMenu,  GET_V197_ON, CENTER_DATA },
+};
+static xScreenObjet const  VHIGHScreen[]=
+{
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "V верхний порог", 0U, 0U , NULL },
+  { LAST_OBJECT, 10U, LINE2, 5U,  EDIT_DATA,    0U,(void*)vGetVoltForMenu,  GET_V250, CENTER_DATA },
+};
+static xScreenObjet const  VHIGHONScreen[]=
+{
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "V отмены верх. порог", 0U, 0U , NULL },
+  { LAST_OBJECT, 10U, LINE2, 5U,  EDIT_DATA,    0U,(void*)vGetVoltForMenu,  GET_V250_ON, CENTER_DATA },
+};
+
+static xScreenObjet const xPasswordScreen[]=
+{
+	 { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Суерсекретный код?", 0U, 0U , NULL },
+	  { LAST_OBJECT, 10U, LINE2, 5U,  MULTI_EDIT_DATA,    0U,(void*)vGetPassword, 0, CENTER_DATA4 },
+};
+
 
 //Описание экранов главонго меню
 
@@ -184,7 +225,8 @@ xScreenType  xMainMenuScreens[MAIN_MENU_COUNT]=
 {
   { StatusMainScreen,         &xMainMenu, &xStatusMenu           ,0,0,0,VIEW_SCREEN },
   { SettingMenuScreen,        &xMainMenu, &xSettingMenu          ,0,0,0,VIEW_SCREEN},
-  { DeviceInfoScreen,         &xMainMenu, NULL                   ,0,0,0,VIEW_SCREEN }
+  { DeviceInfoScreen,         &xMainMenu, NULL                   ,0,0,0,VIEW_SCREEN },
+  { DeviceHardInfoScreen,     &xMainMenu, NULL					  ,0,0,0,VIEW_SCREEN },
 
 };
 
@@ -206,15 +248,25 @@ xScreenType  xSettingMenuScreens[SETTINGS_MENU_COUNT ]=
   {LampReSetRecourceScreen,     &xMainMenu, NULL    ,0,0,0,COMMAND_EDIT  },
   {TimeSetScreen,  			  &xMainMenu, NULL    ,0,0,3,MULTI_PARAMETR_EDIT  },
   {DateSetScreen,             &xMainMenu, NULL    ,0,0,3,MULTI_PARAMETR_EDIT   },
+
+};
+
+xScreenType  xSecretMenuScreens[SECRET_MENU_COUNT] =
+{
+	{VLOWScreen,     			  &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT  },
+	{VLOWONScreen	,     		  &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT  },
+	{VWARScreen,     			  &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT  },
+	{VWARONScreen,     		      &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT  },
+	{VHIGHScreen,     		      &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT  },
+    {VHIGHONScreen,     		  &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT  },
 };
 
 
 xScreenType  xDevoloperMenuScreens[DEVOLOPER_MENU_COUNT ]=
 {
   {LampCountScreen,    &xMainMenu, NULL    ,0,0,0, ONE_PARAMETR_EDIT   },
-  {FBOWSizeScreen,     &xMainMenu, NULL    ,0,0,0, MULTI_PARAMETR_EDIT },
-  {FBOLSizeScreen,    &xMainMenu, NULL    ,0,0,0, MULTI_PARAMETR_EDIT  },
-  {FBOHSizeScreen,     &xMainMenu, NULL    ,0,0,0, ONE_PARAMETR_EDIT   },
+  {FBOASizeScreen,     &xMainMenu, NULL    ,0,0,0, MULTI_PARAMETR_EDIT },
+  {FBOBSizeScreen,     &xMainMenu, NULL    ,0,0,0, MULTI_PARAMETR_EDIT  },
 
 };
 
@@ -223,6 +275,21 @@ xScreenType xYesNoScreens[ YESNO_MENU_COUNT ]=
   {xYesNoScreen,    &xMainMenu, NULL    ,0,0,0, VIEW_SCREEN    },
 };
 
+
+
+xScreenType xPasswordScreens[PASSWORD_MENU_COUNT]=
+{
+    {xPasswordScreen, &xMainMenu, &xSecretMenu ,0,0,0, MULTI_PARAMETR_EDIT },
+
+};
+
+xScreenSetObject xSecretMenu =
+{
+   xSecretMenuScreens,
+  ( SECRET_MENU_COUNT  - 1U ),
+  0U,
+  ( void* )&xEditScreenCallBack,
+};
 
 xScreenSetObject xStatusMenu =
 {
@@ -265,3 +332,10 @@ xScreenSetObject xYesNoMenu =
   ( void* )&xYesNoScreenKeyCallBack,
 };
 
+xScreenSetObject xPasswordMenu =
+{
+  xPasswordScreens,
+  ( PASSWORD_MENU_COUNT - 1U ),
+  0U,
+  ( void* )&xPassScreenCallBack,
+};

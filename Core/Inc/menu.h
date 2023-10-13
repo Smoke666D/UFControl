@@ -50,7 +50,15 @@
 #define DATE_EDIT					 0x17
 #define FBO_SIZE_ID					 0x18
 #define LAMP_RESET_DATA_ID			 0x19
-
+#define GET_V220					 0x20
+#define GET_V187					 0x21
+#define GET_V187_ON					 0x22
+#define GET_V197					 0x23
+#define GET_V197_ON					 0x24
+#define GET_V250					 0x25
+#define GET_V250_ON					 0x26
+#define A_SIZE						 0x27
+#define B_SIZE						 0x28
 
 typedef enum
 {
@@ -143,6 +151,7 @@ void xMainScreenCallBack ( xScreenSetObject* menu, char key );
 void xStatusScreenCallBack ( xScreenSetObject* menu, char key );
 void xEditScreenCallBack ( xScreenSetObject* menu, char key );
 void xYesNoScreenKeyCallBack( xScreenSetObject* menu, char key );
+void xPassScreenCallBack( xScreenSetObject* menu, char key );
 void vMenu( void);
 void vMenuInit();
 void StartMenuTask(void *argument);

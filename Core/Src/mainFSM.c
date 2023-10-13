@@ -5,11 +5,18 @@ uint16_t input_regs[REG_COUNT];
 uint16_t system_regs[REG_COUNT ];
 
 
+static uint8_t MB_FSM = 0;
+
+
 uint16_t usGetRegInput( REGS_t reg_addr)
 {
 	uint16_t usRes;
 	switch (reg_addr)
 	{
+	    case 0:
+	    case 1:
+	    	 usRes = int16GetRegister(FBO_SIZE_A + reg_addr);
+	    	break;
 		case 3:
 			usRes = int8GetRegister(LAMP_COUNT);
 			break;
@@ -73,22 +80,31 @@ uint16_t usGetReg( REGS_t reg_addr)
 
 void StartMb(void *argument)
 {
-	 uint16_t addres  = int8GetRegister(MODBUS_ADDRES );
-	 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
-	 eMBEnable(  );
+
 	 EventGroupHandle_t system_event = xGetSystemUpdateEvent();
      while (1)
-
      {
-		 eMBPoll();
-		 vTaskDelay(10);
-		 if (xEventGroupGetBits(system_event) & SYSTEM_IDLE)
-		 {
-			 eMBDisable();
-			 xEventGroupWaitBits(system_event, SYSTEM_REINIT, pdTRUE, pdTRUE, portMAX_DELAY );
-			 addres  = int8GetRegister(MODBUS_ADDRES );
-			 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
-			 eMBEnable();
-		 }
+
+    	 switch (MB_FSM)
+    	 {
+
+    	 	 case 0:
+    	 		eMBDisable();
+    	 		 xEventGroupWaitBits(system_event, MB_START, pdTRUE, pdTRUE, portMAX_DELAY );
+    	 		 uint8_t addres  = int8GetRegister(MODBUS_ADDRES );
+    	 		 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
+    	 		 eMBEnable();
+    	 		 MB_FSM = 1;
+    	 		 break;
+    	 	 default:
+    	 		 eMBPoll();
+    	 		 vTaskDelay(10);
+    	 		 if (xEventGroupGetBits(system_event) & SYSTEM_IDLE)
+    	 		 {
+    	 			 MB_FSM = 0;
+    	 		 }
+    	 		 break;
+
+    	 }
 	 }
 }

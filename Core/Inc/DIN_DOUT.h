@@ -141,7 +141,21 @@ typedef struct __packed
   unsigned int  sKeyCode;
   unsigned char cStatus;
 } xKeyEvent;
+
+typedef enum
+{
+  REPEAT = 0,
+  DELAY = 1,
+} key_type;
+
+typedef struct __packed
+{
+  xKeyPortStruct port;
+  key_type       ToDo;
+} xKeyDataType;
+
+
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi);
 void StartDIN_DOUT(void *argument);
-
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
 #endif /* INC_DIN_DOUT_H_ */

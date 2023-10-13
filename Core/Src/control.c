@@ -22,6 +22,8 @@ void StartControlTask(void *argument)
 	uint8_t control_type = 0;
 	uint8_t LOW_POWER = 0;
 	uint8_t START = 0;
+	uint8_t WARNNING_MASK = 0;
+	xEventGroupSetBits(system_event, SYSTEM_REINIT);
 	while(1)
 	{
 	   vTaskDelay(1);
@@ -48,6 +50,7 @@ void StartControlTask(void *argument)
 	   if  (( xEventGroupGetBits(system_event) & SYSTEM_RESTART) && (state==CONTROLLER_IDLE))
 	   {
 		  state = CONTROLLER_INIT;
+		  xEventGroupClearBits(system_event,   SYSTEM_STOP);
 		  xEventGroupSetBits(system_event, SYSTEM_REINIT);
 	   }
 	   if  (( xEventGroupGetBits(system_event) & SYSTEM_STOP) && (state!=CONTROLLER_IDLE))
@@ -56,6 +59,8 @@ void StartControlTask(void *argument)
 		   state = CONTROLLER_IDLE;
 	   }
 	   int8SetRegisterBit( DEVICE_OUTPUT_REG, ALARM_OUT_FLAG,  int8GetRegister(DEVICE_ALARM_REG) & ERROR_LAM_FLAG );
+
+
 		switch (state)
 		{
 			case CONTROLLER_INIT:
@@ -64,10 +69,20 @@ void StartControlTask(void *argument)
 				xEventGroupWaitBits(system_event,    DIN_SYSTEM_READY,  pdTRUE, pdTRUE, portMAX_DELAY );
 				xEventGroupClearBits(system_event,   SYSTEM_REINIT);
 				xEventGroupSetBits(system_event,     SYSTEM_READY);
+				xEventGroupSetBits(system_event,     MB_START);
 				state = CONTROLLER_WORK;
 				control_type =  int8GetRegister(CONTROL_TYPE_REG );
 				break;
 			case CONTROLLER_WORK:
+				if (WARNNING_MASK != int8GetRegister(DEVICE_ALARM_REG))
+				{
+					uint8_t mask = (( WARNNING_MASK ^ int8GetRegister(DEVICE_ALARM_REG) ) & int8GetRegister(DEVICE_ALARM_REG));
+					if (mask)
+					{
+						vADDRecord(mask);
+					}
+					WARNNING_MASK = int8GetRegister(DEVICE_ALARM_REG);
+				}
 				if (int8GetRegister(DEVICE_ALARM_REG) & DEVICE_ERROR_MASK )
 				{
 					state = CONTROLLER_ALARM;

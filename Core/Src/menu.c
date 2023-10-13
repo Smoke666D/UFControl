@@ -177,7 +177,7 @@ void xYesNoScreenKeyCallBack( xScreenSetObject* menu, char key )
 	switch ( key)
 	{
 		case KEY_UP:
-			pCurObject->GetDtaFunction(mSAVE,NULL,0);
+			pCurObject->GetDtaFunction(mSAVE,NULL,pCurObject->DataID);
 			pCurrMenu = menu->pHomeMenu[0].pUpScreenSet;
 			DataViewIndex = 0;
 			break;
@@ -344,6 +344,138 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 	  return;
 }
 
+
+
+
+
+
+void xPassScreenCallBack ( xScreenSetObject* menu, char key )
+{
+	uint8_t           index = menu->pCurrIndex;
+	xScreenSetObject* pMenu = menu;
+	  switch ( key )
+	  {
+	    case KEY_UP:
+
+	    	switch (edit_data_flag)
+	    	{
+	    		case SCREEN_VIEW:
+	    			if (++(pMenu->pCurrIndex) > pMenu->pMaxIndex)  {  pMenu->pCurrIndex = 0U; }
+	    			break;
+	    		case  MULTI_PARAM_SELECT:
+	    			multiedit = 1;
+	    		case PARAMETR_SELECT:
+
+	    			DataViewIndex ++;
+	    			if  (edit_data_flag ==  MULTI_PARAM_SELECT)
+	    			{
+	    				if (DataViewIndex >= pMenu->pHomeMenu[index].pEitObject->data_parametr[3])
+	    				{
+	    					DataViewIndex = pMenu->pHomeMenu[index].pEitObject->data_parametr[3] - 1;
+	    				}
+	    			}
+	    			break;
+	    		case PARAMENT_EDIT:
+
+					menu->pHomeMenu[index].pEitObject->GetDtaFunction(mINC,NULL,menu->pHomeMenu[index].pEitObject->DataID);
+	    			break;
+	    	}
+	      break;
+	    case KEY_DOWN:
+
+	    	switch (edit_data_flag)
+	    	{
+	    		case SCREEN_VIEW:
+	    			 if (pMenu->pCurrIndex > 0)
+	    				    pCurrMenu->pCurrIndex--;
+	    			 else
+	    				    pCurrMenu->pCurrIndex = menu->pMaxIndex;
+	    		    break;
+
+	    		case  MULTI_PARAM_SELECT:
+	    			multiedit =1;
+	    		case PARAMETR_SELECT:
+	    			if (DataViewIndex > 0)  DataViewIndex -- ;
+	    		    break;
+	    		case PARAMENT_EDIT:
+	    			pMenu->pHomeMenu[index].pEitObject->GetDtaFunction(mDEC,NULL,menu->pHomeMenu[index].pEitObject->DataID);
+	    		    break;
+	    	}
+	       break;
+	    case  KEY_EXIT:
+	    	multiedit = 0;
+	    	if ( edit_data_flag != SCREEN_VIEW)
+	    	{
+	    		pMenu->pHomeMenu[index].pEitObject->GetDtaFunction(mESC,NULL,NULL);
+	    		pMenu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
+	    		edit_data_flag = SCREEN_VIEW;
+	    	}
+	    	else
+	    	{
+	           if ( pMenu->pHomeMenu[index].pUpScreenSet != NULL )
+	           {
+	               pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
+	               pCurrMenu->pCurrIndex = 0;
+	               menu->pHomeMenu[menu->pCurrIndex].DataIndex = 0;
+	               //pMenu     = pCurrMenu;
+	               xEventGroupSetBits(system_event,SYSTEM_RESTART);
+	           }
+	       }
+	    	DataViewIndex =0;
+	       break;
+	   case KEY_ENTER:
+		    switch (edit_data_flag )
+		    {
+		          xEventGroupSetBits(system_event,SYSTEM_STOP);
+		          case SCREEN_VIEW:
+		        		  for (uint8_t  i=0U; i<MAX_SCREEN_OBJECT; i++ )
+		        		  {
+		        		  	   if ( (menu->pHomeMenu[index].pScreenCurObjets[i].xType == EDIT_DATA) ||
+		        		  			  (menu->pHomeMenu[index].pScreenCurObjets[i].xType == MULTI_EDIT_DATA) )
+		        		  	   {
+		        		  	       menu->pHomeMenu[index].pEitObject = & (menu->pHomeMenu[index].pScreenCurObjets[i]);
+		        		  	       break;
+		        		  	   }
+		        		  	   if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
+		        		  }
+
+		        		  menu->pHomeMenu[index].pEitObject->data_parametr[1] = 1;
+		        		  multiedit =1;
+		        		  edit_data_flag  = MULTI_PARAM_SELECT;
+		        		  break;
+		          case  MULTI_PARAM_SELECT:
+		        	  edit_data_flag = PARAMENT_EDIT;
+		        	  break;
+		          case PARAMENT_EDIT:
+		        	  if (multiedit ==0)
+		        	  {
+		        		  edit_data_flag = SCREEN_VIEW;
+		        		  menu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
+		        		  vDrawObject( pCurrMenu );
+		        		  uint8_t coorect[3];
+		        		  menu->pHomeMenu[index].pEitObject->GetDtaFunction(mSAVE,coorect,menu->pHomeMenu[index].pEitObject->DataID);
+		        		  if ( coorect[0] != 0x55 )
+		        			  pCurrMenu =  pCurrMenu->pHomeMenu[0].pUpScreenSet;
+		        		  else
+		        			pCurrMenu  = menu->pHomeMenu[0].pDownScreenSet;
+		        		    pCurrMenu->pCurrIndex = 0U;
+
+		        		  multiedit = 0;
+		        	  }
+		        	  else
+		        	  {
+		        		  edit_data_flag = MULTI_PARAM_SELECT;
+		        		  multiedit=0;
+		        	  }
+		        	  break;
+		    }
+	        break;
+	    default:
+	      break;
+	  }
+	  return;
+}
+
 void xStatusScreenCallBack ( xScreenSetObject* menu, char key )
 {
 
@@ -441,8 +573,10 @@ void StartMenuTask(void *argument)
 {
 	static uint8_t           key              = 0U;
 	static uint32_t timer = 0;
-	static uint8_t flag;
+	static uint8_t flag = 0;
 	static uint8_t SET_MENU = 0;
+	static uint8_t flag1 = 0;
+		static uint8_t SET_MENU1 = 0;
 	vMenuInit();
 	system_event = xGetSystemUpdateEvent();
 	for (;;)
@@ -470,6 +604,13 @@ void StartMenuTask(void *argument)
 	    		   xEventGroupSetBits(system_event,SYSTEM_STOP);
 	    		   SET_MENU = 0;
 	    	}
+	    	if ( SET_MENU1 == 1 )
+	    	 {
+	    	    	timer = SETINGS_MENU_TIMEOUT;
+	    	    	pCurrMenu = &xPasswordMenu;
+	    	    	xEventGroupSetBits(system_event,SYSTEM_STOP);
+	    	    	SET_MENU1 = 0;
+	    	  }
 
 
 	    	  if ((timer < SETINGS_MENU_TIMEOUT) && (SET_MENU == 0))
@@ -478,15 +619,16 @@ void StartMenuTask(void *argument)
 	    		  {
 	    		  	    case KEY_UP:
 	    		  	    	flag |= 0x01;
+	    		  	    	flag1 |= 0x01;
 	    		  	    	break;
 	    		  	    case KEY_UP_BREAK:
+	    		  	    case KEY_DOWN_BREAK:
 	    		  	    	flag = 0;
+	    		  	    	flag1 = 0;
 	    		  	    	break;
 	    		  	     case KEY_DOWN:
-	    		  	  	    flag |= 0x02;
-	    		  	  	    break;
-	    		  	  	 case KEY_DOWN_BREAK:
-	    		  	  	    flag = 0;
+	    		  	  	    flag  |= 0x02;
+	    		  	  	    flag1 |= 0x02;
 	    		  	  	    break;
 	    		  	  	 case KEY_ENTER:
 	    		  	  		 if (flag == 0x0F)
@@ -502,6 +644,22 @@ void StartMenuTask(void *argument)
 	    		  	  		 {
 	    		  	  			 flag = 0x0F;
 	    		  	  		 }
+	    		  	  		 break;
+	    		  	  	 case KEY_EXIT:
+	    		  	  	      if (flag1 == 0x0F)
+	    		  	  		    		  	  		 {
+	    		  	  		    		  	  			SET_MENU1 = 1;
+	    		  	  		    		  	  			break;
+	    		  	  		    		  	  		 }
+	    		  	  		    		  	  		 if ((flag1 & 0x03) == 0x03)
+	    		  	  		    		  	  			 flag1 =0x07;
+	    		  	  		    		  	  		 break;
+	    		  	  		 break;
+	    		  	  	 case KEY_EXIT_BREAK:
+	    		  	  	 if ((flag1 & 0x07) == 0x07)
+	    		  	  	 {
+	    		  	  		    flag1 = 0x0F;
+	    		  	  	 }
 	    		  	  		 break;
 	    		  }
 
