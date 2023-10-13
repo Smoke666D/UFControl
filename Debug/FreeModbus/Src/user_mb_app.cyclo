@@ -1,4 +1,4 @@
 ../FreeModbus/Src/user_mb_app.c:87:14:eMBRegInputCB	4
 ../FreeModbus/Src/user_mb_app.c:135:14:eMBRegHoldingCB	7
-../FreeModbus/Src/user_mb_app.c:202:14:eMBRegCoilsCB	8
-../FreeModbus/Src/user_mb_app.c:282:14:eMBRegDiscreteCB	4
+../FreeModbus/Src/user_mb_app.c:200:14:eMBRegCoilsCB	8
+../FreeModbus/Src/user_mb_app.c:280:14:eMBRegDiscreteCB	4

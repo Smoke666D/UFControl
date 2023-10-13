@@ -141,7 +141,7 @@ EventGroupHandle_t xGetSystemUpdateEvent();
 #define LCD_7_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+void vTimerInit(uint16_t timeout);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

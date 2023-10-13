@@ -22,6 +22,7 @@
 #define KEY_ENTER_BREAK      (enter_key | BRAKECODE) // 6U
 #define KEY_EXIT            (exit_key | MAKECODE)  //9U
 #define KEY_EXIT_BREAK       (exit_key | BRAKECODE)//7U
+#define KEY_ENTER_DELAY      (enter_key | DELAYCODE)
 
 
 

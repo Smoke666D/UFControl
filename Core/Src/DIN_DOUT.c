@@ -611,21 +611,37 @@ QueueHandle_t pGetKeyboardQueue( void )
 static uint16_t key_no_press_timeout = 0;
 
 
+void vConfigKey( uint8_t index, GPIO_TypeDef* Port_,  uint16_t  Pin_, key_type type_ )
+{
+ if ( index < KEYBOARD_COUNT )
+ {
+	 KEYS[index].port.KeyPort = Port_;
+	 KEYS[index].port.KeyPin  = Pin_;
+	 KEYS[index].ToDo = type_;
+ }
+
+}
+
+
 void vConfigKeyboard()
 {
-
+	vConfigKey(0,KL1_GPIO_Port,KL1_Pin,REPEAT);
+	vConfigKey(1,KL2_GPIO_Port,KL2_Pin,REPEAT);
+	vConfigKey(2,KL3_GPIO_Port,KL3_Pin,DELAY);
+	vConfigKey(3,KL4_GPIO_Port,KL4_Pin,REPEAT);
 }
 
 void vKeyboardTask( void * argument )
 {
   KeyEvent      TEvent;
   GPIO_PinState TK[KEYBOARD_COUNT];
+  vConfigKeyboard();
   for(;;)
   {
     vTaskDelay(KEY_PEREOD);
     for ( uint8_t i=0U; i<KEYBOARD_COUNT; i++ )                                          /* Считываем текущее состояние портов клавиатуры */
     {
-      TK[i]=  HAL_GPIO_ReadPin( xDinPortConfig[i+DIN_COUNT].GPIOx, xDinPortConfig[i+DIN_COUNT].Pin );
+      TK[i]=  HAL_GPIO_ReadPin( KEYS[i].port.KeyPort, KEYS[i].port.KeyPin );
       TEvent.KeyCode = CODES[i];
 	  /*Фиксируем отжатие клавищи (BRAKECODE)*/
       if ( STATUS[i] && ( TK[i] == KEY_OFF_STATE ) )
@@ -661,13 +677,25 @@ void vKeyboardTask( void * argument )
           switch ( STATUS[i] )
           {
             case KEY_ON:
-              if ( COUNTERS[i] >=  DefaultDelay  )
+              if (KEYS[i].ToDo == REPEAT)
               {
-                STATUS[i]      = KEY_ON_REPEAT;
-                COUNTERS[i]    = 0U;
-                TEvent.Status  = MAKECODE;
-                xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-                key_no_press_timeout  = 0;
+            	  if ( COUNTERS[i] >=  DefaultDelay  )
+            	  {
+            		  STATUS[i]      = KEY_ON_REPEAT;
+            		  COUNTERS[i]    = 0U;
+            		  TEvent.Status  = MAKECODE;
+            		  xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
+            		  key_no_press_timeout  = 0;
+            	  }
+              }
+              else
+              {
+            	  if ( COUNTERS[i] >=  PressDelay   )
+				  {
+					  TEvent.Status  = DELAYCODE;
+					  xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
+				  }
+				  key_no_press_timeout  = 0;
               }
               break;
             case KEY_ON_REPEAT:

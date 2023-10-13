@@ -108,8 +108,10 @@ typedef enum {
 #define SWITCHONDELAY      2U
 #define DefaultDelay       50U
 #define DefaultRepeatRate  40U
+#define PressDelay         100U
 #define BRAKECODE          0x40U
 #define MAKECODE           0x80U
+#define DELAYCODE		   0x20U
 
 
 #define kl1_key            0x01U

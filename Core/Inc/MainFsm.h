@@ -17,13 +17,19 @@
 #define  DEVICE_COIL_START     (DEVICE_DINPUT_START + DEVICE_DINPUT)
 #define  DEVICE_COIL		   0
 #define  DEVICE_INPUT_START    ( DEVICE_COIL_START + DEVICE_COIL)
-#define  DEVICE_INPUT		   8
+#define  DEVICE_INPUT		   101
 #define  DEVICE_HOLDING_START  (DEVICE_INPUT_START + DEVICE_INPUT)
-#define  DEVICE_HOLDING        10
-#define  DEVICE_HOLDING_FLASG  7
-#define REG_COUNT 10
+#define  DEVICE_HOLDING        12
 
 
+#define RESET_RESOURSE 		0x5501
+#define RESET_RESOIRSE_ALL  0x5500
+#define SET_RESOURCE        0x4401
+#define SET_RESOURCE_ALL	0x4400
+#define RESET_JOURNAL       0x2200
+#define READ_RECORD			0X2201
+#define SET_DATE			0x3300
+#define READ_DATE           0x3301
 
 typedef enum
  {
@@ -52,4 +58,6 @@ typedef enum
 void StartMb(void *argument);
 void vUPDATECoils( uint8_t rw);
 void vSetRegInputBit(REGS_t reg_addr,uint16_t offset,  uint16_t data );
+uint16_t usGetRegInput( uint16_t reg_addr);
+uint16_t usGetReg( uint16_t reg_addr);
 #endif /* INC_MAINFSM_H_ */

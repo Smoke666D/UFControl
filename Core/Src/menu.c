@@ -320,17 +320,8 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 		        	  edit_data_flag = PARAMENT_EDIT;
 		        	  break;
 		          case PARAMENT_EDIT:
-		        	  if (multiedit ==0)
-		        	  {
-		        		  edit_data_flag = SCREEN_VIEW;
-		        		  menu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
-		        		  vDrawObject( pCurrMenu );
-		        		  pCurObject = menu->pHomeMenu[index].pEitObject;
-		        		  pCurrMenu =  &xYesNoMenu;
-		        		  pCurrMenu->pHomeMenu[0].pUpScreenSet = menu;
-		        		  multiedit = 0;
-		        	  }
-		        	  else
+		        	  if (multiedit !=0)
+
 		        	  {
 		        		  edit_data_flag = MULTI_PARAM_SELECT;
 		        		  multiedit=0;
@@ -338,6 +329,16 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 		        	  break;
 		    }
 	        break;
+		case  KEY_ENTER_DELAY:
+			edit_data_flag = SCREEN_VIEW;
+			menu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
+			vDrawObject( pCurrMenu );
+			pCurObject = menu->pHomeMenu[index].pEitObject;
+			pCurrMenu =  &xYesNoMenu;
+		    pCurrMenu->pHomeMenu[0].pUpScreenSet = menu;
+		    multiedit = 0;
+
+		    break;
 	    default:
 	      break;
 	  }
@@ -353,19 +354,45 @@ void xPassScreenCallBack ( xScreenSetObject* menu, char key )
 {
 	uint8_t           index = menu->pCurrIndex;
 	xScreenSetObject* pMenu = menu;
+	if (edit_data_flag == SCREEN_VIEW)
+	{
+		edit_data_flag  = MULTI_PARAM_SELECT;
+		for (uint8_t  i=0U; i<MAX_SCREEN_OBJECT; i++ )
+	    {
+			if (menu->pHomeMenu[index].pScreenCurObjets[i].xType == MULTI_EDIT_DATA)
+			{
+				menu->pHomeMenu[index].pEitObject = & (menu->pHomeMenu[index].pScreenCurObjets[i]);
+				break;
+			}
+			if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
+	    }
+		menu->pHomeMenu[index].pEitObject->data_parametr[1] = 1;
+		multiedit =1;
+
+	}
 	  switch ( key )
 	  {
+
+	    case  KEY_ENTER_DELAY:
+	    	edit_data_flag = SCREEN_VIEW;
+	    	menu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
+	        vDrawObject( pCurrMenu );
+	    	uint8_t coorect[3];
+	    	menu->pHomeMenu[index].pEitObject->GetDtaFunction(mSAVE,coorect,menu->pHomeMenu[index].pEitObject->DataID);
+	    	if ( coorect[0] != 0x55 )
+	    		pCurrMenu =  pCurrMenu->pHomeMenu[0].pUpScreenSet;
+	    	else
+	    		pCurrMenu  = menu->pHomeMenu[0].pDownScreenSet;
+	    	pCurrMenu->pCurrIndex = 0U;
+	    	multiedit = 0;
+	    	break;
 	    case KEY_UP:
 
 	    	switch (edit_data_flag)
 	    	{
-	    		case SCREEN_VIEW:
-	    			if (++(pMenu->pCurrIndex) > pMenu->pMaxIndex)  {  pMenu->pCurrIndex = 0U; }
-	    			break;
-	    		case  MULTI_PARAM_SELECT:
+	    		case MULTI_PARAM_SELECT:
 	    			multiedit = 1;
 	    		case PARAMETR_SELECT:
-
 	    			DataViewIndex ++;
 	    			if  (edit_data_flag ==  MULTI_PARAM_SELECT)
 	    			{
@@ -376,22 +403,13 @@ void xPassScreenCallBack ( xScreenSetObject* menu, char key )
 	    			}
 	    			break;
 	    		case PARAMENT_EDIT:
-
 					menu->pHomeMenu[index].pEitObject->GetDtaFunction(mINC,NULL,menu->pHomeMenu[index].pEitObject->DataID);
 	    			break;
 	    	}
 	      break;
 	    case KEY_DOWN:
-
 	    	switch (edit_data_flag)
 	    	{
-	    		case SCREEN_VIEW:
-	    			 if (pMenu->pCurrIndex > 0)
-	    				    pCurrMenu->pCurrIndex--;
-	    			 else
-	    				    pCurrMenu->pCurrIndex = menu->pMaxIndex;
-	    		    break;
-
 	    		case  MULTI_PARAM_SELECT:
 	    			multiedit =1;
 	    		case PARAMETR_SELECT:
@@ -400,73 +418,29 @@ void xPassScreenCallBack ( xScreenSetObject* menu, char key )
 	    		case PARAMENT_EDIT:
 	    			pMenu->pHomeMenu[index].pEitObject->GetDtaFunction(mDEC,NULL,menu->pHomeMenu[index].pEitObject->DataID);
 	    		    break;
+	    		default:
+	    			break;
 	    	}
 	       break;
 	    case  KEY_EXIT:
 	    	multiedit = 0;
-	    	if ( edit_data_flag != SCREEN_VIEW)
-	    	{
-	    		pMenu->pHomeMenu[index].pEitObject->GetDtaFunction(mESC,NULL,NULL);
-	    		pMenu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
-	    		edit_data_flag = SCREEN_VIEW;
-	    	}
-	    	else
-	    	{
-	           if ( pMenu->pHomeMenu[index].pUpScreenSet != NULL )
-	           {
-	               pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
-	               pCurrMenu->pCurrIndex = 0;
-	               menu->pHomeMenu[menu->pCurrIndex].DataIndex = 0;
-	               //pMenu     = pCurrMenu;
-	               xEventGroupSetBits(system_event,SYSTEM_RESTART);
-	           }
-	       }
+	    	pMenu->pHomeMenu[index].pEitObject->GetDtaFunction(mESC,NULL,NULL);
+	    	pMenu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
+	    	edit_data_flag = SCREEN_VIEW;
+	        pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
+	        pCurrMenu->pCurrIndex = 0;
 	    	DataViewIndex =0;
 	       break;
+
 	   case KEY_ENTER:
 		    switch (edit_data_flag )
 		    {
-		          xEventGroupSetBits(system_event,SYSTEM_STOP);
-		          case SCREEN_VIEW:
-		        		  for (uint8_t  i=0U; i<MAX_SCREEN_OBJECT; i++ )
-		        		  {
-		        		  	   if ( (menu->pHomeMenu[index].pScreenCurObjets[i].xType == EDIT_DATA) ||
-		        		  			  (menu->pHomeMenu[index].pScreenCurObjets[i].xType == MULTI_EDIT_DATA) )
-		        		  	   {
-		        		  	       menu->pHomeMenu[index].pEitObject = & (menu->pHomeMenu[index].pScreenCurObjets[i]);
-		        		  	       break;
-		        		  	   }
-		        		  	   if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
-		        		  }
-
-		        		  menu->pHomeMenu[index].pEitObject->data_parametr[1] = 1;
-		        		  multiedit =1;
-		        		  edit_data_flag  = MULTI_PARAM_SELECT;
-		        		  break;
 		          case  MULTI_PARAM_SELECT:
 		        	  edit_data_flag = PARAMENT_EDIT;
 		        	  break;
 		          case PARAMENT_EDIT:
-		        	  if (multiedit ==0)
-		        	  {
-		        		  edit_data_flag = SCREEN_VIEW;
-		        		  menu->pHomeMenu[index].pEitObject->data_parametr[1] = 0;
-		        		  vDrawObject( pCurrMenu );
-		        		  uint8_t coorect[3];
-		        		  menu->pHomeMenu[index].pEitObject->GetDtaFunction(mSAVE,coorect,menu->pHomeMenu[index].pEitObject->DataID);
-		        		  if ( coorect[0] != 0x55 )
-		        			  pCurrMenu =  pCurrMenu->pHomeMenu[0].pUpScreenSet;
-		        		  else
-		        			pCurrMenu  = menu->pHomeMenu[0].pDownScreenSet;
-		        		    pCurrMenu->pCurrIndex = 0U;
-
-		        		  multiedit = 0;
-		        	  }
-		        	  else
-		        	  {
-		        		  edit_data_flag = MULTI_PARAM_SELECT;
-		        		  multiedit=0;
-		        	  }
+		        	   edit_data_flag = MULTI_PARAM_SELECT;
+		        	   multiedit=0;
 		        	  break;
 		    }
 	        break;
@@ -582,7 +556,7 @@ void StartMenuTask(void *argument)
 	for (;;)
 	{
 	 osDelay(1);
-	 if (++timer > SETINGS_MENU_TIMEOUT) timer = SETINGS_MENU_TIMEOUT;
+	// if (++timer > SETINGS_MENU_TIMEOUT) timer = SETINGS_MENU_TIMEOUT;
 	 vDrawObject( pCurrMenu );
 	 xEventGroupSetBits(system_event, LCD_REDRAW);
 	 if ( xQueueReceive( pKeyboard, &TempEvent, 0U ) == pdPASS )
@@ -600,6 +574,7 @@ void StartMenuTask(void *argument)
 	    	if ( SET_MENU == 1 )
 	    	{
 	    		    timer = SETINGS_MENU_TIMEOUT;
+	    		    flag = 0;
 	    		    pCurrMenu = &xDevoloperMenu;
 	    		   xEventGroupSetBits(system_event,SYSTEM_STOP);
 	    		   SET_MENU = 0;
@@ -610,10 +585,11 @@ void StartMenuTask(void *argument)
 	    	    	pCurrMenu = &xPasswordMenu;
 	    	    	xEventGroupSetBits(system_event,SYSTEM_STOP);
 	    	    	SET_MENU1 = 0;
+	    	    	flag = 0;
 	    	  }
 
 
-	    	  if ((timer < SETINGS_MENU_TIMEOUT) && (SET_MENU == 0))
+	    	  if ((timer < SETINGS_MENU_TIMEOUT) && (SET_MENU == 0) && (SET_MENU1==0))
 	    	  {
 	    		  switch (key)
 	    		  {

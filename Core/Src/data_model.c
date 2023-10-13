@@ -134,23 +134,19 @@ void vGetPassword( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	    	case 1:step = 100;break;
 	    	case 2:step = 10;break;
 	    	case 3:step = 1;break;
-
 	    }
-
 	switch (cmd)
 	{
 		case mREAD:
-			if (EditFlag == 0) EditDATA = 0 ;
+			    if (EditFlag == 0) EditDATA = 0 ;
 				sprintf(Data,"%04u",(uint16_t) EditDATA );
 				break;
 		case mINC:
-
 				EditFlag = 1;
 				EditDATA = EditDATA + step;
 				if ( EditDATA > 9999 )  EditDATA = 9999;
 				break;
 		case mDEC:
-
 				EditFlag = 1;
 				if ((EditDATA -step)> 0 )
 					EditDATA = EditDATA - step;
@@ -170,7 +166,6 @@ void vGetPassword( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 				step = 1;
 				break;
 	}
-
 }
 
 void vGetVoltForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
@@ -646,12 +641,9 @@ void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 
 	}
 }
-
-
-
-
-
-
+/*
+ *
+ */
  void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t index)
 {
 	switch (cmd)

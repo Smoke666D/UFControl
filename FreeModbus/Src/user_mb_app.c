@@ -174,8 +174,6 @@ eMBErrorCode eMBRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
             	vSetReg(iRegIndex, (*pucRegBuffer)<<8 | *(pucRegBuffer + 1) );
             	pucRegBuffer++;
 				pucRegBuffer++;
-                //pusRegHoldingBuf[iRegIndex] = *pucRegBuffer++ << 8;
-                //pusRegHoldingBuf[iRegIndex] |= *pucRegBuffer++;
                 iRegIndex++;
                 usNRegs--;
             }
@@ -227,7 +225,7 @@ eMBErrorCode eMBRegCoilsCB(UCHAR * pucRegBuffer, USHORT usAddress,
         {
         /* read current coil values from the protocol stack. */
         case MB_REG_READ:
-        	vUPDATECoils(0);
+        	//vUPDATECoils(0);
             while (iNReg > 0)
             {
                 *pucRegBuffer++ = xMBUtilGetBits(&pucCoilBuf[iRegIndex++],
