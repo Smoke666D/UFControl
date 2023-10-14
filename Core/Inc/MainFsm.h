@@ -22,6 +22,14 @@
 #define  DEVICE_HOLDING        12
 
 
+
+
+#define SCADA_CONTROL_ADDR 101
+#define CONFIG_ENABLE_REG 102
+#define ADDRESS_REG 103
+#define COMMAND_REG 105
+#define DATA_REG    106
+
 #define RESET_RESOURSE 		0x5501
 #define RESET_RESOIRSE_ALL  0x5500
 #define SET_RESOURCE        0x4401

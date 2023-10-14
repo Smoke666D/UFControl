@@ -34,10 +34,7 @@ uint16_t usGetRegInput( uint16_t reg_addr)
     return  (usRes);
 }
 
-#define COMMAND_REG 105
-#define ADDRESS_REG 103
-#define SCADA_CONTROL_ADDR 101
-#define CONFIG_ENABLE_REG 102
+
 
 static RTC_TimeTypeDef time;
 static RTC_DateTypeDef date;

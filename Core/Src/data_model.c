@@ -329,9 +329,7 @@ void vGetRecourceEditForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	}
 	switch (ID)
 	{
-
 		case SCREEN_INDEX_ID:
-
 			sprintf(Data,"%u",( max_index ==0 ) ? 0: index + 1 );
 			break;
 		case TOTAL_LAMP_DATA_ID:
@@ -339,7 +337,6 @@ void vGetRecourceEditForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			break;
 		case LAMP_RES_DATA_ID:
 			vSetResLampMenu(cmd, Data, index);
-
 			break;
 		case LAMP_RES_PROCENT_DATA_ID:
 			sprintf(Data,"%u %%", int8GetRegister( LAMP_RESURSE_INDEX  + index) );
@@ -895,6 +892,25 @@ void vLAMWorkHoursWrite()
 	eEEPROMWr(LAMP_WORK_HOURS_INDEX,DATA_MODEL_REGISTER,LAMP_WORK_HOURS_SIZE );
 }
 
+void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateTypeDef * date)
+{
+  uint16_t total     = int16GetRegister( RECORD_COUNT );
+  uint16_t cur_index =  int16GetRegister( RECORD_INDEX);
+  uint16_t index = 0;
+  if ( addr  < total )
+  {
+	  if ( (cur_index + addr) > total )
+	  {
+		  index = addr -   ( total - curindex );
+	  }
+	  else
+		  index = addr + cur_index;
+  }
+  *flag = int8GetRegister( EEPROM_REGISER_COUNT +  index* 5 + 5 );
+
+
+
+}
 
 void vADDRecord( uint8_t flag)
 {
@@ -918,14 +934,14 @@ void vADDRecord( uint8_t flag)
 	DataBuffer[0U] = (date_buffer.Date & DAY_MASK_MSB) >> DAY_OFS_MSB ;
 	DataBuffer[1U] = (uint8_t)((date_time >> FOURTH_BYTE_OFS ) & BYTE_MASK );
 	DataBuffer[2U] = (uint8_t)((date_time >> THRID_BYTE_OFS)   & BYTE_MASK );
-	DataBuffer[4U ] = (uint8_t)((date_time >> SECOND_BYTE_OFS) & BYTE_MASK );
-	DataBuffer[5U ] = (uint8_t)(date_time & BYTE_MASK );
+	DataBuffer[3U ] = (uint8_t)((date_time >> SECOND_BYTE_OFS) & BYTE_MASK );
+	DataBuffer[4U ] = (uint8_t)(date_time & BYTE_MASK );
 
     if  ((RECORD_DATA_SIZE  - (index*5)) < 5 )
     {
     	index = 0;
     }
-    if (int16GetRegister(RECORD_COUNT) < ( RECORD_DATA_SIZE/5)  )
+    if (int16GetRegister(RECORD_COUNT) < ( RECORD_DATA_SIZE*5)  )
     {
     	int16SetRegister(RECORD_COUNT,	int16GetRegister(RECORD_COUNT) +1 );
     }

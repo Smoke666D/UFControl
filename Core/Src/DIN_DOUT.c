@@ -4,10 +4,9 @@
  *  Created on: Jul 27, 2023
  *      Author: i.dymov
  */
-
-
 #include "main.h"
 #include "data_model.h"
+#include "math.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern DMA_HandleTypeDef hdma_spi2_rx;
