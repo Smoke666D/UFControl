@@ -413,14 +413,19 @@ static uint8_t V250_ALARM = 0;
 static uint8_t V187_ALARM = 0;
 static uint8_t V198_ALARM = 0;
 
+#define DELAY_START 100
+
 void StartDIN_DOUT(void *argument)
 {
 	uint8_t init_state = 0;
+	uint8_t start_flag  = 0;
 	uint16_t uCurPeriod = AC_CONVERION_NUMBER-1;
 	int16_t iMax =0;
     uint16_t old= 0;
 	uint16_t DF1;
 	uint8_t switch_off = 0;
+	uint16_t delay = 0;
+	uint8_t ac_ready = 0;
 	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
 	vDINInit();
 	HAL_TIM_Base_Start(&htim8);
@@ -431,11 +436,18 @@ void StartDIN_DOUT(void *argument)
 		{
 			ADC_3_Convert = 1;
 			HAL_ADC_Start_DMA(&hadc3, (uint32_t* )&ADC3_DMABuffer, CONVERSION_NUMBER );
-
-
 		}
-		if (ADC_1_Convert == 0)
+		if ((start_flag) && (delay <( DELAY_START+10)))
 		{
+			delay++;
+		}
+		if ((ADC_1_Convert == 0) && (start_flag))
+		{
+			if (ac_ready == 0)
+			{
+				xEventGroupSetBits(system_event,AC_CONTROL_READY);
+				ac_ready = 1;
+			}
 			ADC_1_Convert = 0;
 			HAL_ADC_Start_DMA(&hadc1, (uint32_t* )&ADC1_DMABuffer, AC_CONVERION_NUMBER*ADC_CHANNEL );
 
@@ -532,6 +544,7 @@ void StartDIN_DOUT(void *argument)
 				else
 				{
 					switch_off = 0;
+					start_flag = 1;
 				}
 			}
 			if (bits & ADC1_DATA_READY)
@@ -558,22 +571,27 @@ void StartDIN_DOUT(void *argument)
 						V250_ALARM = 0;
 					}
 					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_250 ,  V250_ALARM );
-					if  (data1 <= int8GetRegister(WWAR))
-					{
-						V187_ALARM++;
-						if (switch_off) V187_ALARM = 0;
-					}
-					if ((data1 >= int8GetRegister(WWAR_ON)) && (V187_ALARM)) V187_ALARM = 0;
 
-					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_187 , (V187_ALARM==3)?1:0 );
 
-					if ( (data1 >= int8GetRegister( VLOW_ON ) ) && (V198_ALARM) ) V198_ALARM = 0;
+
+					if ( (data1 >= int8GetRegister( VLOW_ON ) ) && (V187_ALARM) ) V187_ALARM = 0;
 					if  (data1 <= int8GetRegister( VLOW ) )
 					{
-						V198_ALARM++;
-						if (switch_off) V198_ALARM = 0;
+						V187_ALARM++;
+						if ((switch_off) || (delay <DELAY_START)) V187_ALARM = 0;
 					}
-					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_198 , (V198_ALARM==3)?1:0);
+					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_187 , (V187_ALARM==3)?1:0);
+
+
+					if  ((data1 <= int8GetRegister(WWAR)) && (V187_ALARM == 0))
+					{
+						V198_ALARM++;
+						if ((switch_off)  || (delay <DELAY_START)) V198_ALARM = 0;
+					}
+					if ((data1 >= int8GetRegister(WWAR_ON)) && (V198_ALARM)) V198_ALARM = 0;
+
+					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_198 , (V198_ALARM==3)?1:0 );
+
 				}
 
 			}
@@ -585,141 +603,3 @@ void StartDIN_DOUT(void *argument)
 
 
 
-static xKeyDataType  KEYS[KEYBOARD_COUNT];
-static unsigned char CODES[KEYBOARD_COUNT]                      = { kl1_key, kl2_key, kl3_key, kl4_key };
-static unsigned char STATUS[KEYBOARD_COUNT]                     = { 0U };
-static unsigned int  COUNTERS[KEYBOARD_COUNT]                   = { 0U };
-static StaticQueue_t      xKeyboardQueue;
-static QueueHandle_t      pKeyboardQueue;
-
-uint8_t              KeyboardBuffer[ 16U * sizeof( KeyEvent ) ] = { 0U };
-/*---------------------------------------------------------------------------------------------------*/
-void vSetupKeyboard( void )
-{
-  pKeyboardQueue  = xQueueCreateStatic( 16U, sizeof( KeyEvent ), KeyboardBuffer, &xKeyboardQueue );
-  xQueueReset( pKeyboardQueue );
-  return;
-}
-/*---------------------------------------------------------------------------------------------------*/
-QueueHandle_t pGetKeyboardQueue( void )
-{
-  return pKeyboardQueue;
-}
-
-#define KEYPAD_TIME_OUT  1000
-static uint16_t key_no_press_timeout = 0;
-
-
-void vConfigKey( uint8_t index, GPIO_TypeDef* Port_,  uint16_t  Pin_, key_type type_ )
-{
- if ( index < KEYBOARD_COUNT )
- {
-	 KEYS[index].port.KeyPort = Port_;
-	 KEYS[index].port.KeyPin  = Pin_;
-	 KEYS[index].ToDo = type_;
- }
-
-}
-
-
-void vConfigKeyboard()
-{
-	vConfigKey(0,KL1_GPIO_Port,KL1_Pin,REPEAT);
-	vConfigKey(1,KL2_GPIO_Port,KL2_Pin,REPEAT);
-	vConfigKey(2,KL3_GPIO_Port,KL3_Pin,DELAY);
-	vConfigKey(3,KL4_GPIO_Port,KL4_Pin,REPEAT);
-}
-
-void vKeyboardTask( void * argument )
-{
-  KeyEvent      TEvent;
-  GPIO_PinState TK[KEYBOARD_COUNT];
-  vConfigKeyboard();
-  for(;;)
-  {
-    vTaskDelay(KEY_PEREOD);
-    for ( uint8_t i=0U; i<KEYBOARD_COUNT; i++ )                                          /* Считываем текущее состояние портов клавиатуры */
-    {
-      TK[i]=  HAL_GPIO_ReadPin( KEYS[i].port.KeyPort, KEYS[i].port.KeyPin );
-      TEvent.KeyCode = CODES[i];
-	  /*Фиксируем отжатие клавищи (BRAKECODE)*/
-      if ( STATUS[i] && ( TK[i] == KEY_OFF_STATE ) )
-      {
-        STATUS[i]      = KEY_OFF; /*Состоянии клавиши ВЫКЛ*/
-        COUNTERS[i]    = 0U;      /*Сбрасываем счетчик*/
-
-        TEvent.Status  = BRAKECODE;
-        //xQueueReset( pKeyboardQueue );
-        xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-        key_no_press_timeout = 0;
-      }
-      else
-      {
-        /*Если текущие состояние потрта ВКЛ, а предидущие было ВЫКЛ
-        //то запускаме счеткик нажатий*/
-        if ( !STATUS[i] && ( TK[i] == KEY_ON_STATE ) )
-        {
-          COUNTERS[i]++;
-          /*если счетчик превысил значение SWITCHONDELAY то фиксируем нажатие*/
-          if ( COUNTERS[i] >=  SWITCHONDELAY  )
-          {
-            COUNTERS[i]    = 0U;
-            STATUS[i]      = KEY_ON;
-            TEvent.Status  = MAKECODE;
-            xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-            key_no_press_timeout = 0;
-          }
-        }
-        else if ( (STATUS[i] != KEY_OFF)  && ( TK[i] == KEY_ON_STATE ) )
-        {
-          COUNTERS[i]++;
-          switch ( STATUS[i] )
-          {
-            case KEY_ON:
-              if (KEYS[i].ToDo == REPEAT)
-              {
-            	  if ( COUNTERS[i] >=  DefaultDelay  )
-            	  {
-            		  STATUS[i]      = KEY_ON_REPEAT;
-            		  COUNTERS[i]    = 0U;
-            		  TEvent.Status  = MAKECODE;
-            		  xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-            		  key_no_press_timeout  = 0;
-            	  }
-              }
-              else
-              {
-            	  if ( COUNTERS[i] >=  PressDelay   )
-				  {
-					  TEvent.Status  = DELAYCODE;
-					  xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-				  }
-				  key_no_press_timeout  = 0;
-              }
-              break;
-            case KEY_ON_REPEAT:
-              if ( COUNTERS[i] >= DefaultRepeatRate )
-              {
-                COUNTERS[i]    = 0U;
-                TEvent.Status  = MAKECODE;
-                xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-                key_no_press_timeout  = 0;
-              }
-              break;
-            default:
-    	      break;
-          }
-        }
-      }
-    }
-    if (++key_no_press_timeout > KEYPAD_TIME_OUT )
-    {
-    	key_no_press_timeout = 0;
-    	key_no_press_timeout = 0U;
-    	TEvent.KeyCode     = time_out;
-    	TEvent.Status      = MAKECODE;
-    	xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
-    }
-  }
-  return;
-}

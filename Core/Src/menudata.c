@@ -62,6 +62,14 @@ static xScreenObjet const DeviceHardInfoScreen[] =
 
 };
 
+static xScreenObjet const JournalInfoScreen[] =
+{
+   { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Запесей в журнале:", 0U, 0U , NULL },
+   { LAST_OBJECT, 10U, LINE2, 1, DATA,  0U, (void*)vGetJournal, TOTAL_RECORD, CENTER_DATA  },
+
+
+};
+
 
 static xScreenObjet const LampErrorScreen[]  =
 {
@@ -72,7 +80,13 @@ static xScreenObjet const LampErrorScreen[]  =
    { LAST_OBJECT, 10U, LINE2, 7U,  DATA,  0U,(void*)vGetErrorForMenu, ERROR_DATA_ID, CENTER_DATA },
 };
 
-
+static xScreenObjet const xJournalScreen[]=
+{
+	{ 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "N", 0U, 0U, NULL  },
+	{0U, 2U, LINE1, 1, DATA,  0U, (void*)vGetJournal, CUR_RECORD, LEFT_DATA  },
+	{ 0U, 19U, LINE1, 1, DATA,  0U, (void*)vGetJournal, ALARM_STATUS, RIGTH_DATA  },
+	{ LAST_OBJECT, 10U, LINE2, 1, DATA,  0U, (void*)vGetJournal, ALARM_TIME_STATUS, CENTER_DATA  },
+};
 
 static xScreenObjet const LampErrorMenuScreen[]=
 {
@@ -227,6 +241,7 @@ xScreenType  xMainMenuScreens[MAIN_MENU_COUNT]=
   { SettingMenuScreen,        &xMainMenu, &xSettingMenu          ,0,0,0,VIEW_SCREEN},
   { DeviceInfoScreen,         &xMainMenu, NULL                   ,0,0,0,VIEW_SCREEN },
   { DeviceHardInfoScreen,     &xMainMenu, NULL					  ,0,0,0,VIEW_SCREEN },
+  { JournalInfoScreen,        &xMainMenu, &xJournalView			  ,0,0,0,VIEW_SCREEN },
 
 };
 
@@ -245,7 +260,7 @@ xScreenType  xSettingMenuScreens[SETTINGS_MENU_COUNT ]=
   {ControlTypeScreen,         &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT },
   {AllLampSetRecourceScreen,  &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT  },
   {LampSetRecourceScreen,     &xMainMenu, NULL    ,0,0,0,MULTI_PARAMETR_EDIT  },
-  {LampReSetRecourceScreen,     &xMainMenu, NULL    ,0,0,0,COMMAND_EDIT  },
+  {LampReSetRecourceScreen,   &xMainMenu, NULL    ,0,0,0,COMMAND_EDIT  },
   {TimeSetScreen,  			  &xMainMenu, NULL    ,0,0,3,MULTI_PARAMETR_EDIT  },
   {DateSetScreen,             &xMainMenu, NULL    ,0,0,3,MULTI_PARAMETR_EDIT   },
 
@@ -275,7 +290,10 @@ xScreenType xYesNoScreens[ YESNO_MENU_COUNT ]=
   {xYesNoScreen,    &xMainMenu, NULL    ,0,0,0, VIEW_SCREEN    },
 };
 
-
+xScreenType xJournalScreens[JOURNAL_MENU_COUNT]=
+{
+		{xJournalScreen,    &xMainMenu, NULL    ,0,0,0, VIEW_SCREEN    },
+};
 
 xScreenType xPasswordScreens[PASSWORD_MENU_COUNT]=
 {
@@ -338,4 +356,13 @@ xScreenSetObject xPasswordMenu =
   ( PASSWORD_MENU_COUNT - 1U ),
   0U,
   ( void* )&xPassScreenCallBack,
+};
+
+xScreenSetObject  xJournalView =
+{
+	xJournalScreens,
+   ( JOURNAL_MENU_COUNT - 1U ),
+	0U,
+   ( void* )&xJournalScreenCallBack,
+
 };

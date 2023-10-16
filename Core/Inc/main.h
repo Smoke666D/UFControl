@@ -74,6 +74,7 @@ void Error_Handler(void);
 #define LCD_REDRAW				0x800
 #define RTC_STAMP				0x1000
 #define MB_START				0x2000
+#define AC_CONTROL_READY        0x4000
 
 EventGroupHandle_t xGetSystemUpdateEvent();
 /* USER CODE END EFP */

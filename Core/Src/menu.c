@@ -6,9 +6,9 @@
  */
 #include "menu.h"
 #include "LCD.h"
-
 #include "math.h"
 #include "menudata.h"
+#include "keyboard.h"
 
 static xScreenObjet*     pCurObject       = 0;
 static xScreenSetObject* pCurrMenu        = NULL;
@@ -88,19 +88,20 @@ void vDrawObject( xScreenSetObject* menu)
     		    	   x_offset = pScreenObjects[i].x;
     		    	   if ( pScreenObjects[i].data_parametr!=NULL )
     		    	   {
+    		    		   uint8_t len =  strlen(Text);
     		    		   switch (pScreenObjects[i].data_parametr[0])
     		    		   {
     		    		   	   case CENTER_ALIGN:
-    		    		   		   volatile uint8_t len =  strlen(Text);
-    		    		   		   if ( pScreenObjects[i].x > (strlen(Text)/2))
+
+    		    		   		   if ( pScreenObjects[i].x > (len/2))
     		    		   		   {
-    		    		   			   x_offset = pScreenObjects[i].x - strlen(Text)/2;
+    		    		   			   x_offset = pScreenObjects[i].x - len/2;
     		    		   		   }
     		    		   		   break;
     		    		   	   case RIGTH_ALIGN :
-    		    		   		    if ( pScreenObjects[i].x > (strlen(Text)-1))
+    		    		   		    if ( pScreenObjects[i].x > (len-1))
     		    		   		    {
-    		    		   		    	x_offset =    pScreenObjects[i].x-(strlen(Text)-1);
+    		    		   		    	x_offset =    pScreenObjects[i].x-(len-1);
     		    		   		    }
     		    		   		   break;
     		    		   	   default:
@@ -271,8 +272,9 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 	   case KEY_ENTER:
 		    switch (edit_data_flag )
 		    {
-		          xEventGroupSetBits(system_event,SYSTEM_STOP);
+
 		          case SCREEN_VIEW:
+		        	  xEventGroupSetBits(system_event,SYSTEM_STOP);
 		        		  for (uint8_t  i=0U; i<MAX_SCREEN_OBJECT; i++ )
 		        		  {
 		        		  	   if ( (menu->pHomeMenu[index].pScreenCurObjets[i].xType == EDIT_DATA) ||
@@ -405,6 +407,8 @@ void xPassScreenCallBack ( xScreenSetObject* menu, char key )
 	    		case PARAMENT_EDIT:
 					menu->pHomeMenu[index].pEitObject->GetDtaFunction(mINC,NULL,menu->pHomeMenu[index].pEitObject->DataID);
 	    			break;
+	    		default:
+	    			break;
 	    	}
 	      break;
 	    case KEY_DOWN:
@@ -442,6 +446,8 @@ void xPassScreenCallBack ( xScreenSetObject* menu, char key )
 		        	   edit_data_flag = MULTI_PARAM_SELECT;
 		        	   multiedit=0;
 		        	  break;
+		          default:
+		        	  break;
 		    }
 	        break;
 	    default:
@@ -454,7 +460,6 @@ void xStatusScreenCallBack ( xScreenSetObject* menu, char key )
 {
 
 	uint8_t           index = menu->pCurrIndex;
-	xScreenSetObject* pMenu = menu;
 	  switch ( key )
 	  {
 	    case KEY_UP:
@@ -505,6 +510,39 @@ void xStatusScreenCallBack ( xScreenSetObject* menu, char key )
 	  }
 	  return;
 }
+
+
+
+void xJournalScreenCallBack ( xScreenSetObject* menu, char key )
+{
+
+	uint8_t           index = menu->pCurrIndex;
+	  switch ( key )
+	  {
+	    case KEY_UP:
+	    	DataViewIndex ++ ;
+	      break;
+	    case KEY_DOWN:
+	    	if (DataViewIndex > 0)  DataViewIndex --;
+
+	       break;
+	    case  KEY_EXIT:
+	    	   if ( menu->pHomeMenu[index].pUpScreenSet != NULL )
+	    	   {
+	    		   pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
+	    		  pCurrMenu->pCurrIndex = 0;
+	    	   }
+
+	        break;
+	    default:
+	      break;
+	  }
+	  return;
+}
+
+
+
+
 
 void xMainScreenCallBack ( xScreenSetObject* menu, char key )
 {

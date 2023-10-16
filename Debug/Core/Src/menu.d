@@ -49,7 +49,8 @@ Core/Src/menu.o: ../Core/Src/menu.c ../Core/Inc/menu.h ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Core/Inc/lamp.h ../Core/Inc/MainFSM.h ../Core/Inc/data_model.h \
- ../Core/Inc/menu.h ../Core/Inc/LCD.h ../Core/Inc/menudata.h
+ ../Core/Inc/menu.h ../Core/Inc/LCD.h ../Core/Inc/menudata.h \
+ ../Core/Inc/keyboard.h
 ../Core/Inc/menu.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
@@ -108,3 +109,4 @@ Core/Src/menu.o: ../Core/Src/menu.c ../Core/Inc/menu.h ../Core/Inc/main.h \
 ../Core/Inc/menu.h:
 ../Core/Inc/LCD.h:
 ../Core/Inc/menudata.h:
+../Core/Inc/keyboard.h:

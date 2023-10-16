@@ -12,7 +12,7 @@
 #include "menu.h"
 
 
-#define VALID_CODE      0x45
+#define VALID_CODE      0x55
 /* описание регистра в регисторвой модели*/
 #define VALID_CODE_ADDRES   0
 #define PASSWORD           ( VALID_CODE_ADDRES +1  )
@@ -111,7 +111,7 @@ typedef enum
 
 #define MOD_BUS_ADDRES  0x01
 
-
+#define RECORD_SIZE 7
 
 #define LAMP_DATA_SIZE 5
 #define DOOR_ADDR 0x01
@@ -174,5 +174,9 @@ void vGetVoltForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void vGetPassword( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 uint8_t ucGetLampProc(uint8_t lamp_id);
 void vLAMWorkHoursWrite();
+void vResetLampRecource(uint8_t lamp_index);
+void vSetLampRecource( uint8_t lamp_index, uint16_t recource);
 void vADDRecord( uint8_t flag);
+void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateTypeDef * date);
+void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 #endif /* INC_DATA_MODEL_H_ */

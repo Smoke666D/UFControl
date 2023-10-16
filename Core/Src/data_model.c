@@ -30,8 +30,8 @@ static const char * ErrorStrings[] ={ "Аварий нет",
 										"Отказ ламп",
 										"Наработка 97%",
 										"Наработка 100%",
-										"Напряжение <198В",
-										"Напряжение<187В",
+										"Напряжение <187В",
+										"Напряжение<198В",
 										"Напряжение>250В"
 	};
 
@@ -61,7 +61,18 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
     		sprintf(Data,"%u",error_count);
     		break;
     	case ERROR_DATA_ID:
-    		sprintf(Data,"%s",ErrorStrings[(error_count ==0 ) ? 0: index + 1]);
+    		uint8_t i;
+    		uint8_t k= 0;
+    		for (i=0;i< VOLT_250;i++)
+    		{
+    			if (error_reg>>i & 0x01)
+    			{
+    				k++;
+    				if ((k-1) == index) break;
+    			}
+    		}
+
+    		sprintf(Data,"%s",ErrorStrings[(error_count ==0 ) ? 0: i + 1]);
     		break;
     	default:
 
@@ -335,9 +346,6 @@ void vGetRecourceEditForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 		case TOTAL_LAMP_DATA_ID:
 			vSetLampCount(cmd,Data);
 			break;
-		case LAMP_RES_DATA_ID:
-			vSetResLampMenu(cmd, Data, index);
-			break;
 		case LAMP_RES_PROCENT_DATA_ID:
 			sprintf(Data,"%u %%", int8GetRegister( LAMP_RESURSE_INDEX  + index) );
 		default:
@@ -383,6 +391,45 @@ void vGetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 }
 
 
+void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+	static RTC_TimeTypeDef time;
+	static RTC_DateTypeDef date;
+	uint16_t index = usGetDataViewIndex();
+	uint16_t max_index = int16GetRegister( RECORD_COUNT);
+	uint16_t flag;
+	if  (index  >= max_index )
+	{
+		index = ( max_index == 0 ) ? 0 : max_index -1 ;
+		vSetDataViewIndex( index );
+	}
+
+	switch (ID)
+	{
+		case TOTAL_RECORD:
+			sprintf(Data,"%u",int16GetRegister( RECORD_COUNT));
+			break;
+		case CUR_RECORD:
+			sprintf(Data,"%u",(max_index == 0) ? 0 : index +1);
+			break;
+		case ALARM_STATUS:
+			uint8_t i;
+			vGetRecord( index ,(uint8_t *)&flag,&time,&date );
+			for (i=0;i< VOLT_250;i++)
+			 {
+				if (flag>>i & 0x1) break;
+			}
+			sprintf(Data,"%s",ErrorStrings[i+1]);
+			break;
+		case ALARM_TIME_STATUS:
+			vGetRecord( index ,(uint8_t *)&flag,&time,&date );
+			sprintf(Data,"%02u:%02u:%02u  %02u.%02u.20%02u",time.Hours,time.Minutes,time.Seconds,date.Date,date.Month,date.Year);
+			break;
+
+	}
+
+}
+
 
 void vSetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
@@ -422,10 +469,8 @@ void vSetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 					  break;
 				  case mSAVE:
 					  EditFlag = 0;
-					  int8SetRegister(LAMP_MAX_TIME_INDEX + index, (uint8_t)EditDATA );
-					  eEEPROMWr(LAMP_MAX_TIME_INDEX+ index ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + index],1);
+					  vSetLampRecource( index + 1, (uint8_t)EditDATA);
 					  break;
-
 				  case mESC:
 					  EditDATA = 0;
 					  EditFlag = 0;
@@ -437,7 +482,28 @@ void vSetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 }
 
 
+void vSetLampRecource( uint8_t lamp_index, uint16_t recource)
+{
+	if ( lamp_index == 0 )
+	{
+		for (uint8_t i= 0;i<(uint8_t) int8GetRegister( LAMP_COUNT) ;i++)
+		{
+			int8SetRegister(LAMP_MAX_TIME_INDEX + i, (uint8_t)recource );
+		}
+	    eEEPROMWr(LAMP_MAX_TIME_INDEX ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX],(uint8_t) int8GetRegister( LAMP_COUNT));
 
+	}
+	else
+	{
+		if ( lamp_index <= LAMP_COUNT )
+		{
+			int8SetRegister(LAMP_MAX_TIME_INDEX + lamp_index -1 , (uint8_t)EditDATA );
+			eEEPROMWr(LAMP_MAX_TIME_INDEX+ lamp_index -1 ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + lamp_index - 1 ],1);
+		}
+	}
+
+	return;
+}
 
 
 void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
@@ -453,7 +519,7 @@ void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			}
 			else
 			{
-				sprintf(Data,"лампы %02u",EditDATA );
+				sprintf(Data,"лампы %02u",(uint8_t)EditDATA );
 			}
          	break;
 		 case mINC:
@@ -465,17 +531,8 @@ void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 				if ( EditDATA > 0)  EditDATA--;
 			break;
 		case mSAVE:
-			if (EditDATA!= 0)
-			{
-				*((uint32_t *)&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + EditDATA - 1]) = 0;
-				eEEPROMWr(LAMP_WORK_HOURS_INDEX + EditDATA - 1 ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + EditDATA - 1],4);
-			}
-			else
-			{
-				memset(&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],0,44*4);
-				eEEPROMWr(LAMP_WORK_HOURS_INDEX ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],44*4);
 
-			}
+			vResetLampRecource(EditDATA);
 		case mESC:
 			EditDATA = 0;
 			EditFlag = 0;
@@ -484,6 +541,26 @@ void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	}
 
 }
+
+
+void vResetLampRecource(uint8_t lamp_index)
+{
+	if (lamp_index == 0)
+	{
+		memset(&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],0,44*4);
+		eEEPROMWr(LAMP_WORK_HOURS_INDEX ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],44*4);
+	}
+	else
+	{
+		if (lamp_index <=  MAX_LAMP_COUNT)
+		{
+			*((uint32_t *)&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + (EditDATA - 1)*4]) = 0;
+			eEEPROMWr(LAMP_WORK_HOURS_INDEX + EditDATA - 1 ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + (EditDATA - 1)*4],4);
+		}
+	}
+	return;
+}
+
  void vEditLampCount(DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
 	switch (cmd)
@@ -538,6 +615,7 @@ static void vSetLampCount(DATA_COMMNAD_TYPE cmd, char* Data)
 }
 
 static RTC_TimeTypeDef time;
+
 void vSetTimeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
 
@@ -665,19 +743,16 @@ void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 		  break;
 	  case mSAVE:
 		  if (EditFlag == 0) EditDATA = 1;
-		  else
-		  EditFlag = 0;
-		  for (uint8_t i= 0;i<(uint8_t) int8GetRegister( LAMP_COUNT) ;i++)
-		  {
-			  int8SetRegister(LAMP_MAX_TIME_INDEX + i, (uint8_t)EditDATA );
-		  }
-		  eEEPROMWr(LAMP_MAX_TIME_INDEX ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX],(uint8_t) int8GetRegister( LAMP_COUNT));
+		  vSetLampRecource( 0 , EditDATA );
 	  case mESC:
 		  EditDATA = 0;
 		  EditFlag = 0;
 		  break;
 	}
 }
+
+
+
 
 uint32_t int32GetData( uint16_t index )
 {
@@ -828,7 +903,7 @@ void vGetControlTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
 	{
 	  case mREAD:
 		  data = (EditFlag == 0) ? int8GetRegister(CONTROL_TYPE_REG ) : (uint8_t)EditDATA;
-		  sprintf(Data,"%s",(data ? "ЩИТ" : "SCADA"));
+		  sprintf(Data,"%s",(data ? "SCADA": "ЩИТ" ));
 		  break;
 	  case mINC:
 		  if (EditFlag == 0) EditDATA =int8GetRegister(CONTROL_TYPE_REG );
@@ -869,9 +944,11 @@ void InitDataModel()
 			DATA_MODEL_REGISTER[CONTROL_TYPE_REG ] = (0x01<<LOCAL_TYPE);
 			DATA_MODEL_REGISTER[MODBUS_ADDRES  ] = 0x01;
 			DATA_MODEL_REGISTER[LAMP_COUNT]= 44;
+			*((uint16_t *)&DATA_MODEL_REGISTER[RECORD_INDEX  ])= 0;
+			*((uint16_t *)&DATA_MODEL_REGISTER[RECORD_COUNT ])= 0;
 			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_A ]) =1000;
 			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_B   ]) = 800;
-			DATA_MODEL_REGISTER[VLOW] =  187;
+			DATA_MODEL_REGISTER[VLOW]    =   187;
 			DATA_MODEL_REGISTER[VLOW_ON] =  197;
 			DATA_MODEL_REGISTER[WWAR] =  198;
 			DATA_MODEL_REGISTER[WWAR_ON] =  210;
@@ -894,19 +971,42 @@ void vLAMWorkHoursWrite()
 
 void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateTypeDef * date)
 {
-  uint16_t total     = int16GetRegister( RECORD_COUNT );
+  uint16_t total     =  int16GetRegister( RECORD_COUNT );
   uint16_t cur_index =  int16GetRegister( RECORD_INDEX);
+  uint8_t pData[RECORD_DATA_SIZE];
   uint16_t index = 0;
-  if ( addr  < total )
+  if ( addr  <= total )
   {
-	  if ( (cur_index + addr) > total )
+	  if ( (cur_index - total) >= 0  )
 	  {
-		  index = addr -   ( total - curindex );
+		  index = addr;
 	  }
 	  else
-		  index = addr + cur_index;
+	  {
+		  if ((cur_index + index) < total)
+		  {
+			  index = cur_index + index;
+		  }
+		  else
+		  {
+			  index = addr - (total - cur_index + 1);
+		  }
+	  }
+
+	  eEEPROMRd(EEPROM_REGISER_COUNT +  index*RECORD_SIZE  ,pData , RECORD_SIZE );
+      *flag = pData[0];
+      date->Date = pData[1];
+      date->Month = pData[2];
+      date->Year = pData[3];
+      time->Hours = pData[4];
+      time->Minutes = pData[5];
+      time->Seconds = pData[6];
   }
-  *flag = int8GetRegister( EEPROM_REGISER_COUNT +  index* 5 + 5 );
+  else
+  {
+	  *flag = 0;
+  }
+
 
 
 
@@ -917,34 +1017,26 @@ void vADDRecord( uint8_t flag)
 
 	RTC_TimeTypeDef time_buffer;
 	RTC_DateTypeDef date_buffer;
-	uint32_t date_time;
 	uint16_t  index = int16GetRegister(RECORD_INDEX);
-	uint8_t DataBuffer[6];
-	DataBuffer[5] =  flag;
+	uint8_t DataBuffer[RECORD_SIZE];
+	DataBuffer[0] =  flag;
 	HAL_RTC_GetTime(&hrtc, &time_buffer,  RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &date_buffer,  RTC_FORMAT_BIN);
-
-	date_time = (uint32_t)( time_buffer.Seconds  & SECOND_MASK);
-	date_time |= (uint32_t)( time_buffer.Minutes &  MINUTE_MASK ) << MINUTE_OFS ;
-	date_time |= (uint32_t)( time_buffer.Hours   & HOUR_MASK )    << HOUR_OFS ;
-	date_time |= (uint32_t)( date_buffer.Year    & YEAR_MASK )    << YEAR_OFS ;
-	date_time |= (uint32_t)( date_buffer.Month   & MONTH_MASK  )  << MONTH_OFS ;
-	date_time |= (uint32_t)( date_buffer.Date    & DAY_MASK_LSB)  << DAY_OFS_LSB;
-
-	DataBuffer[0U] = (date_buffer.Date & DAY_MASK_MSB) >> DAY_OFS_MSB ;
-	DataBuffer[1U] = (uint8_t)((date_time >> FOURTH_BYTE_OFS ) & BYTE_MASK );
-	DataBuffer[2U] = (uint8_t)((date_time >> THRID_BYTE_OFS)   & BYTE_MASK );
-	DataBuffer[3U ] = (uint8_t)((date_time >> SECOND_BYTE_OFS) & BYTE_MASK );
-	DataBuffer[4U ] = (uint8_t)(date_time & BYTE_MASK );
-
-    if  ((RECORD_DATA_SIZE  - (index*5)) < 5 )
-    {
-    	index = 0;
-    }
-    if (int16GetRegister(RECORD_COUNT) < ( RECORD_DATA_SIZE*5)  )
+	DataBuffer[1] =  date_buffer.Date;
+	DataBuffer[3] =  date_buffer.Month;
+	DataBuffer[4] =  date_buffer.Year;
+    DataBuffer[4] =  time_buffer.Hours;
+    DataBuffer[5] =  time_buffer.Minutes;
+    DataBuffer[6] =  time_buffer.Seconds;
+    eEEPROMWr(EEPROM_REGISER_COUNT +  index* RECORD_SIZE, DataBuffer, RECORD_SIZE );
+    if ( ++index >= RECORD_DATA_SIZE ) index = 0;
+    int16SetRegister(RECORD_INDEX, index);
+    if (int16GetRegister(RECORD_COUNT) < ( RECORD_DATA_SIZE)  )
     {
     	int16SetRegister(RECORD_COUNT,	int16GetRegister(RECORD_COUNT) +1 );
     }
-    eEEPROMWr(EEPROM_REGISER_COUNT +  index* 5, DataBuffer, 5 );
+    eEEPROMWr(RECORD_COUNT , &DATA_MODEL_REGISTER[RECORD_COUNT], 4 );
+
 }
+
 

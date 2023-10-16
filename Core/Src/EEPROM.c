@@ -85,11 +85,8 @@ void eEEPROM(I2C_HandleTypeDef * hi2c2)
  	if ( (addr +len)  <= EEPROM_SIZE)
  	{
  		uint8_t ucTemp[ADDRESS_DATA];
- 		for (uint8_t i = 0; i< ADDRESS_DATA; i++ )
- 		{
- 			ucTemp[i] = (( addr >> BYTE_SHIFT*i ) & ADDRES_MASK ) ;
- 	    }
-
+ 		ucTemp[0] =  (addr >> 8) & 0xFF ;
+ 		ucTemp[1] =  addr & 0xFF ;
  		if ( HAL_I2C_Master_Transmit(I2C, Device_ADD | GET_ADDR_MSB( addr ),(uint8_t *) &ucTemp, ADDRESS_DATA ,EEPROM_TIME_OUT ) != HAL_OK )
  		{
  			return ( EEPROM_READ_ERROR );

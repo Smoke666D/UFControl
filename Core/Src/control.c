@@ -66,7 +66,7 @@ void StartControlTask(void *argument)
 			case CONTROLLER_INIT:
 				xEventGroupClearBits(system_event,   SYSTEM_IDLE);
 				InitDataModel();
-				xEventGroupWaitBits(system_event,    DIN_SYSTEM_READY,  pdTRUE, pdTRUE, portMAX_DELAY );
+				xEventGroupWaitBits(system_event,    DIN_SYSTEM_READY | AC_CONTROL_READY,  pdTRUE, pdTRUE, portMAX_DELAY );
 				xEventGroupClearBits(system_event,   SYSTEM_REINIT);
 				xEventGroupSetBits(system_event,     SYSTEM_READY);
 				xEventGroupSetBits(system_event,     MB_START);

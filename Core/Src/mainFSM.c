@@ -21,20 +21,18 @@ uint16_t usGetRegInput( uint16_t reg_addr)
 		case 8:
 			   uint64_t temp = int32GetData( LAM_ERROR_REG_LSB ) | (((uint64_t)int32GetData( LAM_ERROR_REG_MSB ))<<22);
 					usRes =  temp >>( 11* (reg_addr-5) )  & 0x7FF; break;
-		case 98: usRes =int8GetRegister( DEVICE_ALARM_REG ); 	   break;
-		case 99: usRes =int8GetRegister( DEVICE_INPUT_REG );	   break;
+		case 98:  usRes =int8GetRegister( DEVICE_ALARM_REG ); 	   break;
+		case 99:  usRes =int8GetRegister( DEVICE_INPUT_REG );	   break;
 		case 100: usRes =int8GetRegister( DEVICE_OUTPUT_REG );	   break;
 		case 101: usRes =int16GetRegister( RECORD_COUNT );		   break;
 		default:
-			if ((reg_addr >=9) && (reg_addr <=53)) usRes = int8GetRegister( LAMP_MAX_TIME_INDEX + reg_addr-9)*1000;
-			if ((reg_addr>53) && (reg_addr<=97))   usRes = int8GetRegister( LAMP_RESURSE_INDEX + reg_addr-54);
+			if ((reg_addr >=9) && (reg_addr <53)) usRes = int8GetRegister( LAMP_MAX_TIME_INDEX + reg_addr-9)*1000;
+			if ((reg_addr>= 53) && (reg_addr< 97))   usRes = int8GetRegister( LAMP_RESURSE_INDEX + reg_addr-53);
 			break;
 	}
 
     return  (usRes);
 }
-
-
 
 static RTC_TimeTypeDef time;
 static RTC_DateTypeDef date;
@@ -48,37 +46,59 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
     		case READ_DATE:
     			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
     			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
-    			system_regs[0] = date.Date;
-    			system_regs[1] = date.Month;
-    			system_regs[2] = date.Year;
-    			system_regs[3] = time.Hours;
-    			system_regs[4] = time.Minutes;
-    			system_regs[5] = time.Seconds;
+    			system_regs[DATE_OFFSET] = date.Date;
+    			system_regs[MOUNTH_OFFSET] = date.Month;
+    			system_regs[YEAR_OFFSET] = date.Year;
+    			system_regs[HOUR_OFFSET] = time.Hours;
+    			system_regs[MINUTE_OFFSET] = time.Minutes;
+    			system_regs[SECOND_OFFSET] = time.Seconds;
     			break;
     		case SET_DATE:
-    			date.Date    = system_regs[0];
-    			date.Month   = system_regs[1];
-    			date.Year 	 = system_regs[2];
-    			time.Hours 	 = system_regs[3];
-    			time.Minutes = system_regs[4];
-    			time.Seconds = system_regs[5];
+    			date.Date    = system_regs[DATE_OFFSET];
+    			date.Month   = system_regs[MOUNTH_OFFSET];
+    			date.Year 	 = system_regs[YEAR_OFFSET];
+    			time.Hours 	 = system_regs[HOUR_OFFSET];
+    			time.Minutes = system_regs[MINUTE_OFFSET];
+    			time.Seconds = system_regs[SECOND_OFFSET];
+    			HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+    			HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
     			break;
     		case RESET_JOURNAL:
     			int16SetRegister( RECORD_COUNT , 0);
     			break;
     		case READ_RECORD:
-    			uint8_t flags;
-    			//GetRecord(&flags,&date,&time )
+    			vGetRecord(system_regs[ADDRESS_OFFSET],((uint8_t *)&system_regs[DATA_OFFSET]),&time,&date );
+    			system_regs[0] = date.Date;
+    		    system_regs[1] = date.Month;
+    		    system_regs[2] = date.Year;
+    		    system_regs[3] = time.Hours;
+    		    system_regs[4] = time.Minutes;
+    		    system_regs[5] = time.Seconds;
+    		case RESET_RESOURSE:
+    			if (system_regs[ADDRESS_OFFSET] > 0 )
+    				vResetLampRecource(system_regs[ADDRESS_OFFSET]);
+    			break;
+    		case RESET_RESOIRSE_ALL:
+    			vResetLampRecource( 0 );
+    			break;
+    		case SET_RESOURCE:
+    			if ( system_regs[ADDRESS_OFFSET]!= 0)
+    			{
+    				vSetLampRecource( system_regs[ADDRESS_OFFSET] , system_regs[DATA_OFFSET]/1000 );
+    			}
+    			break;
+    		case SET_RESOURCE_ALL:
+    			vSetLampRecource( 0 , system_regs[DATA_OFFSET]/1000 );
     			break;
 
     	}
     }
-	system_regs[ reg_addr- 101 ] = data;
+	system_regs[ reg_addr] = data;
 }
 
 uint16_t usGetReg( uint16_t reg_addr)
 {
-	return  (system_regs[ reg_addr - 101 ]);
+	return  (system_regs[ reg_addr ]);
 }
 
 

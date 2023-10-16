@@ -60,6 +60,11 @@
 #define GET_V250_ON					 0x26
 #define A_SIZE						 0x27
 #define B_SIZE						 0x28
+#define TOTAL_RECORD			     0x29
+#define CUR_RECORD					 0x2A
+#define ALARM_STATUS				 0x2B
+#define ALARM_TIME_STATUS			 0x2C
+
 
 typedef enum
 {
@@ -153,6 +158,7 @@ void xStatusScreenCallBack ( xScreenSetObject* menu, char key );
 void xEditScreenCallBack ( xScreenSetObject* menu, char key );
 void xYesNoScreenKeyCallBack( xScreenSetObject* menu, char key );
 void xPassScreenCallBack( xScreenSetObject* menu, char key );
+void xJournalScreenCallBack ( xScreenSetObject* menu, char key );
 void vMenu( void);
 void vMenuInit();
 void StartMenuTask(void *argument);
