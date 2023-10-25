@@ -169,7 +169,7 @@ void vGetPassword( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			    }
 			    else
 			    {
-			    	Data[0] = 0;
+			    	Data[0] = 0x55;
 			    }
 		case mESC:
 				EditDATA = 0;

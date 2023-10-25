@@ -9,6 +9,7 @@
 #include "math.h"
 #include "menudata.h"
 #include "keyboard.h"
+#include "utf8_to_cp1251.h"
 
 static xScreenObjet*     pCurObject       = 0;
 static xScreenSetObject* pCurrMenu        = NULL;
@@ -280,7 +281,7 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 		        		  	   if ( (menu->pHomeMenu[index].pScreenCurObjets[i].xType == EDIT_DATA) ||
 		        		  			  (menu->pHomeMenu[index].pScreenCurObjets[i].xType == MULTI_EDIT_DATA) )
 		        		  	   {
-		        		  	       menu->pHomeMenu[index].pEitObject = & (menu->pHomeMenu[index].pScreenCurObjets[i]);
+		        		  	       menu->pHomeMenu[index].pEitObject = &(menu->pHomeMenu[index].pScreenCurObjets[i]);
 		        		  	       break;
 		        		  	   }
 		        		  	   if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
@@ -363,7 +364,7 @@ void xPassScreenCallBack ( xScreenSetObject* menu, char key )
 	    {
 			if (menu->pHomeMenu[index].pScreenCurObjets[i].xType == MULTI_EDIT_DATA)
 			{
-				menu->pHomeMenu[index].pEitObject = & (menu->pHomeMenu[index].pScreenCurObjets[i]);
+				menu->pHomeMenu[index].pEitObject = &(menu->pHomeMenu[index].pScreenCurObjets[i]);
 				break;
 			}
 			if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
@@ -382,9 +383,9 @@ void xPassScreenCallBack ( xScreenSetObject* menu, char key )
 	    	uint8_t coorect[3];
 	    	menu->pHomeMenu[index].pEitObject->GetDtaFunction(mSAVE,coorect,menu->pHomeMenu[index].pEitObject->DataID);
 	    	if ( coorect[0] != 0x55 )
-	    		pCurrMenu =  pCurrMenu->pHomeMenu[0].pUpScreenSet;
+	    		pCurrMenu =  pCurrMenu->pHomeMenu[index].pUpScreenSet;
 	    	else
-	    		pCurrMenu  = menu->pHomeMenu[0].pDownScreenSet;
+	    		pCurrMenu  = menu->pHomeMenu[index].pDownScreenSet;
 	    	pCurrMenu->pCurrIndex = 0U;
 	    	multiedit = 0;
 	    	break;

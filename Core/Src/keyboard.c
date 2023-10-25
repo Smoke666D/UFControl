@@ -102,6 +102,7 @@ void vKeyboardTask( void * argument )
 				  				  		if ( KEYS[i].COUNTERS >=  PressDelay   )
 				  				  		{
 				  				  			TEvent.Status  = DELAYCODE;
+				  				  		    KEYS[i].COUNTERS    = 0U;
 				  				  			xQueueSend( pKeyboardQueue, &TEvent, portMAX_DELAY );
 				  				  		}
 				  				  	}

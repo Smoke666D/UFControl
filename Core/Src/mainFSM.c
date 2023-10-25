@@ -90,7 +90,6 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
     		case SET_RESOURCE_ALL:
     			vSetLampRecource( 0 , system_regs[DATA_OFFSET]/1000 );
     			break;
-
     	}
     }
 	system_regs[ reg_addr] = data;
@@ -104,19 +103,20 @@ uint16_t usGetReg( uint16_t reg_addr)
 
 void StartMb(void *argument)
 {
-
 	 EventGroupHandle_t system_event = xGetSystemUpdateEvent();
      while (1)
      {
-
     	 switch (MB_FSM)
     	 {
 
     	 	 case 0:
-    	 		eMBDisable();
+    	 		 eMBDisable();
     	 		 xEventGroupWaitBits(system_event, MB_START, pdTRUE, pdTRUE, portMAX_DELAY );
     	 		 uint8_t addres  = int8GetRegister(MODBUS_ADDRES );
     	 		 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
+    	 		 uint8_t IDDATA[2] = {0x34,0x54};
+    	 		 eMBSetSlaveID( 0x55, 1,IDDATA,2);
+    	 		 vSetReg(12,0x5434);
     	 		 eMBEnable();
     	 		 MB_FSM = 1;
     	 		 break;
@@ -128,7 +128,6 @@ void StartMb(void *argument)
     	 			 MB_FSM = 0;
     	 		 }
     	 		 break;
-
     	 }
 	 }
 }

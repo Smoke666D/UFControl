@@ -1,9 +1,5 @@
 FreeModbus/Src/porttimer.o: ../FreeModbus/Src/porttimer.c \
- ../FreeModbus/Src/../Inc/mb.h ../FreeModbus/Src/../Inc/port.h \
- ../FreeModbus/Src/../Inc/mbconfig.h ../FreeModbus/Src/../Inc/mbport.h \
- ../FreeModbus/Src/../Inc/mbproto.h ../FreeModbus/Src/../Inc/mbport.h \
- ../FreeModbus/Src/../Inc/port.h ../Core/Inc/mainFSM.h ../Core/Inc/main.h \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
+ ../Core/Inc/main.h ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h \
@@ -34,7 +30,7 @@ FreeModbus/Src/porttimer.o: ../FreeModbus/Src/porttimer.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/EEPROM.h ../Core/Inc/lcd.h \
+ ../Core/Inc/EEPROM.h ../Core/Inc/main.h ../Core/Inc/lcd.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
@@ -53,15 +49,11 @@ FreeModbus/Src/porttimer.o: ../FreeModbus/Src/porttimer.c \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Core/Inc/lamp.h ../Core/Inc/MainFSM.h ../Core/Inc/data_model.h \
- ../Core/Inc/menu.h
-../FreeModbus/Src/../Inc/mb.h:
-../FreeModbus/Src/../Inc/port.h:
-../FreeModbus/Src/../Inc/mbconfig.h:
-../FreeModbus/Src/../Inc/mbport.h:
-../FreeModbus/Src/../Inc/mbproto.h:
-../FreeModbus/Src/../Inc/mbport.h:
-../FreeModbus/Src/../Inc/port.h:
-../Core/Inc/mainFSM.h:
+ ../Core/Inc/menu.h ../FreeModbus/Src/../Inc/mb.h \
+ ../FreeModbus/Src/../Inc/port.h ../FreeModbus/Src/../Inc/mbconfig.h \
+ ../FreeModbus/Src/../Inc/mbport.h ../FreeModbus/Src/../Inc/mbproto.h \
+ ../FreeModbus/Src/../Inc/mbport.h ../FreeModbus/Src/../Inc/port.h \
+ ../Core/Inc/mainFSM.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
@@ -95,6 +87,7 @@ FreeModbus/Src/porttimer.o: ../FreeModbus/Src/porttimer.c \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 ../Core/Inc/EEPROM.h:
+../Core/Inc/main.h:
 ../Core/Inc/lcd.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
@@ -117,3 +110,11 @@ FreeModbus/Src/porttimer.o: ../FreeModbus/Src/porttimer.c \
 ../Core/Inc/MainFSM.h:
 ../Core/Inc/data_model.h:
 ../Core/Inc/menu.h:
+../FreeModbus/Src/../Inc/mb.h:
+../FreeModbus/Src/../Inc/port.h:
+../FreeModbus/Src/../Inc/mbconfig.h:
+../FreeModbus/Src/../Inc/mbport.h:
+../FreeModbus/Src/../Inc/mbproto.h:
+../FreeModbus/Src/../Inc/mbport.h:
+../FreeModbus/Src/../Inc/port.h:
+../Core/Inc/mainFSM.h:

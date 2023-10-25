@@ -20,6 +20,7 @@
  */
 
 /* ----------------------- Platform includes --------------------------------*/
+#include "main.h"
 #include "../Inc/mb.h"
 #include "../Inc/mbport.h"
 #include "../Inc/port.h"

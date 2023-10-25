@@ -19,7 +19,7 @@ extern DMA_HandleTypeDef hdma_adc3;
 static uint8_t ADC_3_Convert = 0;
 static uint8_t ADC_1_Convert = 0;
 #define CONVERSION_NUMBER 10
-#define AC_CONVERION_NUMBER 1200
+#define AC_CONVERION_NUMBER 1500
 #define ADC_CHANNEL 2
 #define R2   75
 #define R1   470
@@ -425,6 +425,8 @@ void StartDIN_DOUT(void *argument)
 	uint16_t DF1;
 	uint8_t switch_off = 0;
 	uint16_t delay = 0;
+	uint16_t delatV1 = 0;
+	uint16_t dealtV2 = 0;
 	uint8_t ac_ready = 0;
 	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
 	vDINInit();
@@ -463,6 +465,7 @@ void StartDIN_DOUT(void *argument)
 			vSetOut(LOCAL_LAMP, 0 );
 			xEventGroupWaitBits(system_event, SYSTEM_REINIT, pdTRUE, pdTRUE, portMAX_DELAY );
 			init_state = 0;
+			ac_ready = 0;
 		}
 		else
 		{
@@ -499,8 +502,8 @@ void StartDIN_DOUT(void *argument)
 					xEventGroupSetBits(system_event,   DIN_SYSTEM_READY );
 				}
 			}
-			int8SetRegisterBit(DEVICE_ALARM_REG,  DOOR_ALARM , 0); //(uint16_t)xDinConfig[DOOR].ucValue );
-        	int8SetRegisterBit( DEVICE_INPUT_REG,  IN_DOOR_ALARM, 0);// (uint16_t)xDinConfig[DOOR].ucValue );
+			int8SetRegisterBit(DEVICE_ALARM_REG,  DOOR_ALARM ,(uint16_t)xDinConfig[DOOR].ucValue );
+        	int8SetRegisterBit(DEVICE_INPUT_REG,  IN_DOOR_ALARM,  (uint16_t)xDinConfig[DOOR].ucValue );
 			int8SetRegisterBit(DEVICE_ALARM_REG,  FIRE_FLAG,       (uint16_t)xDinConfig[FIRE].ucValue);
 			int8SetRegisterBit(DEVICE_INPUT_REG,  IN_FIRE_ALARM,   (uint16_t)xDinConfig[FIRE].ucValue );
 			int8SetRegisterBit(DEVICE_STATUS_REG, REMOTE_FLAG,     (uint16_t)xDinConfig[REMOTE].ucValue);
@@ -558,39 +561,33 @@ void StartDIN_DOUT(void *argument)
 				{
 				    uint16_t data1 = xADCRMS(&ADC1_DMABuffer[0],uCurPeriod,2);
 					data1 = vRCFilter(data1, &old);
-
 					data1 = (float)data1 * ( 401U * 3.3 / 4095U );
 					int8SetRegister(V220,(uint8_t)data1 );
 					if ( data1 >= int8GetRegister(VHIGH) )
 					{
-						V250_ALARM= 0;
-
+						V250_ALARM= 1;
 					}
 					if ((data1 <= int8GetRegister(VHIGH_ON) ) && (V250_ALARM) )
 					{
 						V250_ALARM = 0;
 					}
 					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_250 ,  V250_ALARM );
-
-
-
 					if ( (data1 >= int8GetRegister( VLOW_ON ) ) && (V187_ALARM) ) V187_ALARM = 0;
 					if  (data1 <= int8GetRegister( VLOW ) )
 					{
 						V187_ALARM++;
+						if (V187_ALARM >=10) V187_ALARM=10;
 						if ((switch_off) || (delay <DELAY_START)) V187_ALARM = 0;
 					}
-					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_187 , (V187_ALARM==3)?1:0);
-
-
+					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_187 , (V187_ALARM>=3)?1:0);
 					if  ((data1 <= int8GetRegister(WWAR)) && (V187_ALARM == 0))
 					{
 						V198_ALARM++;
+						if (V198_ALARM >=10) V198_ALARM=10;
 						if ((switch_off)  || (delay <DELAY_START)) V198_ALARM = 0;
 					}
 					if ((data1 >= int8GetRegister(WWAR_ON)) && (V198_ALARM)) V198_ALARM = 0;
-
-					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_198 , (V198_ALARM==3)?1:0 );
+					int8SetRegisterBit(DEVICE_ALARM_REG,VOLT_198 , (V198_ALARM>=3)?1:0 );
 
 				}
 

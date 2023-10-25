@@ -137,12 +137,12 @@ eMBErrorCode eMBRegHoldingCB(UCHAR * pucRegBuffer, USHORT usAddress,
 {
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          iRegIndex;
-    USHORT *        pusRegHoldingBuf;
+   // USHORT *        pusRegHoldingBuf;
     USHORT          REG_HOLDING_START;
     USHORT          REG_HOLDING_NREGS;
     USHORT          usRegHoldStart;
 
-    pusRegHoldingBuf = usSRegHoldBuf;
+  //  pusRegHoldingBuf = usSRegHoldBuf;
     REG_HOLDING_START = S_REG_HOLDING_START;
     REG_HOLDING_NREGS = S_REG_HOLDING_NREGS;
     usRegHoldStart = usSRegHoldStart;

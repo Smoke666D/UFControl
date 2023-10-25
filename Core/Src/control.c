@@ -50,7 +50,8 @@ void StartControlTask(void *argument)
 	   if  (( xEventGroupGetBits(system_event) & SYSTEM_RESTART) && (state==CONTROLLER_IDLE))
 	   {
 		  state = CONTROLLER_INIT;
-		  xEventGroupClearBits(system_event,   SYSTEM_STOP);
+		  xEventGroupClearBits(system_event,  SYSTEM_STOP);
+		  xEventGroupClearBits(system_event,  SYSTEM_RESTART);
 		  xEventGroupSetBits(system_event, SYSTEM_REINIT);
 	   }
 	   if  (( xEventGroupGetBits(system_event) & SYSTEM_STOP) && (state!=CONTROLLER_IDLE))
