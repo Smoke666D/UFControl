@@ -17,26 +17,26 @@
 #define  DEVICE_COIL_START     (DEVICE_DINPUT_START + DEVICE_DINPUT)
 #define  DEVICE_COIL		   0
 #define  DEVICE_INPUT_START    ( DEVICE_COIL_START + DEVICE_COIL)
-#define  DEVICE_INPUT		   101
+#define  DEVICE_INPUT		   102
 #define  DEVICE_HOLDING_START  (DEVICE_INPUT_START + DEVICE_INPUT)
 #define  DEVICE_HOLDING        13
 
 
-#define SCADA_CONTROL_OFFSET    0x01
-#define CONFIG_OFFSET			0x02
-#define ADDRESS_OFFSET			0x03
-#define COMMAND_OSFFET			0x04
-#define DATA_OFFSET 			0x05
-#define DATE_OFFSET				0x06
-#define MOUNTH_OFFSET           0x07
-#define YEAR_OFFSET				0x08
-#define HOUR_OFFSET				0x09
-#define MINUTE_OFFSET           0x0A
-#define SECOND_OFFSET			0x0B
-#define ID_OFFSET				0x0C
+#define SCADA_CONTROL_OFFSET    0x00
+#define CONFIG_OFFSET			0x01
+#define ADDRESS_OFFSET			0x02
+#define COMMAND_OSFFET			0x03
+#define DATA_OFFSET 			0x04
+#define DATE_OFFSET				0x05
+#define MOUNTH_OFFSET           0x06
+#define YEAR_OFFSET				0x07
+#define HOUR_OFFSET				0x08
+#define MINUTE_OFFSET           0x09
+#define SECOND_OFFSET			0x0A
+#define ID_OFFSET				0x0B
 
 
-#define SCADA_CONTROL_ADDR  (1)
+#define SCADA_CONTROL_ADDR  (0)
 #define CONFIG_ENABLE_REG   (SCADA_CONTROL_ADDR +1)
 #define ADDRESS_REG 		(CONFIG_ENABLE_REG  +1)
 #define COMMAND_REG 		(ADDRESS_REG +1)

@@ -68,12 +68,13 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
     			break;
     		case READ_RECORD:
     			vGetRecord(system_regs[ADDRESS_OFFSET],((uint8_t *)&system_regs[DATA_OFFSET]),&time,&date );
-    			system_regs[0] = date.Date;
-    		    system_regs[1] = date.Month;
-    		    system_regs[2] = date.Year;
-    		    system_regs[3] = time.Hours;
-    		    system_regs[4] = time.Minutes;
-    		    system_regs[5] = time.Seconds;
+
+    			system_regs[DATE_OFFSET] = date.Date;
+    			system_regs[MOUNTH_OFFSET] = date.Month;
+    			system_regs[YEAR_OFFSET] = date.Year;
+    			system_regs[HOUR_OFFSET] = time.Hours;
+    			system_regs[MINUTE_OFFSET] = time.Minutes;
+    			system_regs[SECOND_OFFSET] = time.Seconds;
     		case RESET_RESOURSE:
     			if (system_regs[ADDRESS_OFFSET] > 0 )
     				vResetLampRecource(system_regs[ADDRESS_OFFSET]);
@@ -114,9 +115,9 @@ void StartMb(void *argument)
     	 		 xEventGroupWaitBits(system_event, MB_START, pdTRUE, pdTRUE, portMAX_DELAY );
     	 		 uint8_t addres  = int8GetRegister(MODBUS_ADDRES );
     	 		 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
-    	 		 uint8_t IDDATA[2] = {0x34,0x54};
-    	 		 eMBSetSlaveID( 0x55, 1,IDDATA,2);
-    	 		 vSetReg(12,0x5434);
+
+
+    	 		 vSetReg(11,0x5434);
     	 		 eMBEnable();
     	 		 MB_FSM = 1;
     	 		 break;
