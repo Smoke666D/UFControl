@@ -12,7 +12,7 @@
 #include "menu.h"
 
 
-#define VALID_CODE      0x66
+#define VALID_CODE      0x33
 /* описание регистра в регисторвой модели*/
 #define VALID_CODE_ADDRES   0
 #define PASSWORD           ( VALID_CODE_ADDRES +1  )

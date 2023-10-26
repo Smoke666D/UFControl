@@ -119,7 +119,7 @@ const osThreadAttr_t LAP_task_attributes = {
 };
 /* Definitions for mbTask */
 osThreadId_t mbTaskHandle;
-uint32_t mbTaskBuffer[ 128 ];
+uint32_t mbTaskBuffer[ 200 ];
 osStaticThreadDef_t mbTaskControlBlock;
 const osThreadAttr_t mbTask_attributes = {
   .name = "mbTask",
@@ -143,7 +143,7 @@ const osThreadAttr_t ControlTask_attributes = {
 };
 /* Definitions for UARTTask */
 osThreadId_t UARTTaskHandle;
-uint32_t UARTTaskBuffer[ 128 ];
+uint32_t UARTTaskBuffer[ 200 ];
 osStaticThreadDef_t UARTTaskControlBlock;
 const osThreadAttr_t UARTTask_attributes = {
   .name = "UARTTask",
@@ -609,7 +609,8 @@ static void MX_RTC_Init(void)
 
   /* USER CODE END RTC_Init 0 */
 
-
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef DateToUpdate = {0};
 
   /* USER CODE BEGIN RTC_Init 1 */
 

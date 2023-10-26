@@ -75,6 +75,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
     			system_regs[HOUR_OFFSET] = time.Hours;
     			system_regs[MINUTE_OFFSET] = time.Minutes;
     			system_regs[SECOND_OFFSET] = time.Seconds;
+    			break;
     		case RESET_RESOURSE:
     			if (system_regs[ADDRESS_OFFSET] > 0 )
     				vResetLampRecource(system_regs[ADDRESS_OFFSET]);
