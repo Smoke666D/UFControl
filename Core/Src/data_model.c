@@ -491,14 +491,13 @@ void vSetLampRecource( uint8_t lamp_index, uint16_t recource)
 			int8SetRegister(LAMP_MAX_TIME_INDEX + i, (uint8_t)recource );
 		}
 	    eEEPROMWr(LAMP_MAX_TIME_INDEX ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX],(uint8_t) int8GetRegister( LAMP_COUNT));
-
 	}
 	else
 	{
 		if ( lamp_index <= LAMP_COUNT )
 		{
-			int8SetRegister(LAMP_MAX_TIME_INDEX + lamp_index -1 , (uint8_t)EditDATA );
-			eEEPROMWr(LAMP_MAX_TIME_INDEX+ lamp_index -1 ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + lamp_index - 1 ],1);
+			int8SetRegister(LAMP_MAX_TIME_INDEX + lamp_index - 1 , (uint8_t)EditDATA );
+			eEEPROMWr(LAMP_MAX_TIME_INDEX + lamp_index -1 ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + lamp_index - 1 ], 1 );
 		}
 	}
 
@@ -944,16 +943,16 @@ void InitDataModel()
 			DATA_MODEL_REGISTER[CONTROL_TYPE_REG ] = (0x01<<LOCAL_TYPE);
 			DATA_MODEL_REGISTER[MODBUS_ADDRES  ] = 0x01;
 			DATA_MODEL_REGISTER[LAMP_COUNT]= 44;
-			*((uint16_t *)&DATA_MODEL_REGISTER[RECORD_INDEX  ])= 0;
-			*((uint16_t *)&DATA_MODEL_REGISTER[RECORD_COUNT ])= 0;
-			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_A ]) =1000;
-			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_B   ]) = 800;
-			DATA_MODEL_REGISTER[VLOW]    =   187;
-			DATA_MODEL_REGISTER[VLOW_ON] =  197;
-			DATA_MODEL_REGISTER[WWAR] =  198;
-			DATA_MODEL_REGISTER[WWAR_ON] =  210;
-			DATA_MODEL_REGISTER[VHIGH] =  250;
-			DATA_MODEL_REGISTER[VHIGH_ON] =  240;
+			*((uint16_t *)&DATA_MODEL_REGISTER[RECORD_INDEX  ])	= 0;
+			*((uint16_t *)&DATA_MODEL_REGISTER[RECORD_COUNT ])	= 0;
+			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_A ]) 	= 1000;
+			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_B   ]) 	= 800;
+			DATA_MODEL_REGISTER[VLOW]    	=  187;
+			DATA_MODEL_REGISTER[VLOW_ON] 	=  197;
+			DATA_MODEL_REGISTER[WWAR] 		=  198;
+			DATA_MODEL_REGISTER[WWAR_ON] 	=  210;
+			DATA_MODEL_REGISTER[VHIGH] 		=  250;
+			DATA_MODEL_REGISTER[VHIGH_ON] 	=  240;
 			eEEPROMWr(VALID_CODE_ADDRES,DATA_MODEL_REGISTER,EEPROM_REGISER_COUNT);
 			memset(DATA_MODEL_REGISTER,0,EEPROM_REGISER_COUNT);
 			eEEPROMRd(0x00 ,DATA_MODEL_REGISTER , EEPROM_REGISER_COUNT);
@@ -995,10 +994,10 @@ void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateT
 
 	  eEEPROMRd(EEPROM_REGISER_COUNT +  index*RECORD_SIZE  ,pData , RECORD_SIZE );
       *flag = pData[0];
-      date->Date = pData[1];
-      date->Month = pData[2];
-      date->Year = pData[3];
-      time->Hours = pData[4];
+      date->Date	= pData[1];
+      date->Month 	= pData[2];
+      date->Year 	= pData[3];
+      time->Hours 	= pData[4];
       time->Minutes = pData[5];
       time->Seconds = pData[6];
   }
@@ -1006,10 +1005,6 @@ void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateT
   {
 	  *flag = 0;
   }
-
-
-
-
 }
 
 void vADDRecord( uint8_t flag)
@@ -1023,8 +1018,8 @@ void vADDRecord( uint8_t flag)
 	HAL_RTC_GetTime(&hrtc, &time_buffer,  RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &date_buffer,  RTC_FORMAT_BIN);
 	DataBuffer[1] =  date_buffer.Date;
-	DataBuffer[3] =  date_buffer.Month;
-	DataBuffer[4] =  date_buffer.Year;
+	DataBuffer[2] =  date_buffer.Month;
+	DataBuffer[3] =  date_buffer.Year;
     DataBuffer[4] =  time_buffer.Hours;
     DataBuffer[5] =  time_buffer.Minutes;
     DataBuffer[6] =  time_buffer.Seconds;

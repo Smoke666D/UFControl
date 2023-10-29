@@ -194,7 +194,7 @@ static void vDINInit()
 	RegisteDATALoadInit();
 	eDinConfig( INPUT_1, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_2, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_3, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_3, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_4, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_5, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	PL_SET();
@@ -425,8 +425,6 @@ void StartDIN_DOUT(void *argument)
 	uint16_t DF1;
 	uint8_t switch_off = 0;
 	uint16_t delay = 0;
-	uint16_t delatV1 = 0;
-	uint16_t dealtV2 = 0;
 	uint8_t ac_ready = 0;
 	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
 	vDINInit();
@@ -493,9 +491,9 @@ void StartDIN_DOUT(void *argument)
 			if   (RegisterDATALoad() == 1)
 			{
 				uint32_t bdata = data[5] | data[4]<<8 | (data[3] & 0x3F)<<16;
-				int32SetData(LAM_ERROR_REG_LSB, ~bdata & 0x003FFFFF);
+				int32SetData(LAM_ERROR_REG_LSB, bdata & 0x003FFFFF);
 				bdata = data[3]>>6 | data[1]<<10 | (data[0] & 0x0F)<<18 | data[2] <<2;
-				int32SetData(LAM_ERROR_REG_MSB, ~bdata & 0x003FFFFF);
+				int32SetData(LAM_ERROR_REG_MSB, bdata & 0x003FFFFF);
 				if ( init_state == 0 )
 				{
 					init_state = 1;

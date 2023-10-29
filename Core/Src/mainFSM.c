@@ -84,7 +84,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
     			vResetLampRecource( 0 );
     			break;
     		case SET_RESOURCE:
-    			if ( system_regs[ADDRESS_OFFSET]!= 0)
+    			if (( system_regs[ADDRESS_OFFSET]> 0)  &&  ( system_regs[ADDRESS_OFFSET]<=44 ))
     			{
     				vSetLampRecource( system_regs[ADDRESS_OFFSET] , system_regs[DATA_OFFSET]/1000 );
     			}

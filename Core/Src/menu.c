@@ -662,13 +662,12 @@ void StartMenuTask(void *argument)
 	    		  	  		 break;
 	    		  	  	 case KEY_EXIT:
 	    		  	  	      if (flag1 == 0x0F)
-	    		  	  		    		  	  		 {
-	    		  	  		    		  	  			SET_MENU1 = 1;
-	    		  	  		    		  	  			break;
-	    		  	  		    		  	  		 }
-	    		  	  		    		  	  		 if ((flag1 & 0x03) == 0x03)
-	    		  	  		    		  	  			 flag1 =0x07;
-	    		  	  		    		  	  		 break;
+	    		  	  		  {
+	    		  	  		    SET_MENU1 = 1;
+	    		  	  		    break;
+	    		  	  		  }
+	    		  	  		  if ((flag1 & 0x03) == 0x03)
+	    		  	  			  flag1 =0x07;
 	    		  	  		 break;
 	    		  	  	 case KEY_EXIT_BREAK:
 	    		  	  	 if ((flag1 & 0x07) == 0x07)

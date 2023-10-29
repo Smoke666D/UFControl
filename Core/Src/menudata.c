@@ -64,7 +64,7 @@ static xScreenObjet const DeviceHardInfoScreen[] =
 
 static xScreenObjet const JournalInfoScreen[] =
 {
-   { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Запесей в журнале:", 0U, 0U , NULL },
+   { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Записей в журнале:", 0U, 0U , NULL },
    { LAST_OBJECT, 10U, LINE2, 1, DATA,  0U, (void*)vGetJournal, TOTAL_RECORD, CENTER_DATA  },
 
 
@@ -228,7 +228,7 @@ static xScreenObjet const  VHIGHONScreen[]=
 
 static xScreenObjet const xPasswordScreen[]=
 {
-	 { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Суерсекретный код?", 0U, 0U , NULL },
+	 { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Введите пароль:", 0U, 0U , NULL },
 	  { LAST_OBJECT, 10U, LINE2, 5U,  MULTI_EDIT_DATA,    0U,(void*)vGetPassword, 0, CENTER_DATA4 },
 };
 
