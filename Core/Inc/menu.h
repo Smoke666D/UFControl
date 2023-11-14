@@ -136,7 +136,7 @@ typedef struct __packed
   const xScreenObjet*  pScreenCurObjets;
   void*        pUpScreenSet;
   void*        pDownScreenSet;
-  xScreenObjet*pEitObject;
+  xScreenObjet*  pEitObject;
   uint8_t	   DataIndex;
   uint8_t	   MaxMultiEditParametr;
   SCREEN_TYPE  ScreenType;

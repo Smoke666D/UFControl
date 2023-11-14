@@ -18,7 +18,6 @@
 static uint8_t LEFT_DATA[]=   {LEFT_ALIGN,  0, 2, 3 };
 static uint8_t RIGTH_DATA[]=  {RIGTH_ALIGN, 0, 2, 3 };
 static uint8_t CENTER_DATA[]= {CENTER_ALIGN,0, 3, 3 };
-static uint8_t CENTER_DATA3[]= {CENTER_ALIGN,0, 1, 3 };
 static uint8_t CENTER_DATA4[]= {CENTER_ALIGN,0, 1, 4 };
 
 
@@ -151,13 +150,13 @@ static xScreenObjet const LampSetRecourceScreen[] =
 static xScreenObjet const TimeSetScreen[] =
 {
    { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Установить время", 0U, 0U , NULL },
-   { LAST_OBJECT, 10, LINE2, 2U, MULTI_EDIT_DATA,  NULL, (void*)vSetTimeForMenu, NULL , CENTER_DATA },
+   { LAST_OBJECT, 10, LINE2, 2U, MULTI_EDIT_DATA,  NULL, (void*)vSetTimeForMenu, 0 , CENTER_DATA },
 };
 
 static xScreenObjet const DateSetScreen[] =
 {
    { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Установить дату", 0U, 0U , NULL },
-   { LAST_OBJECT, 10, LINE2, 2U, MULTI_EDIT_DATA,  NULL, (void*)vSetDateForMenu, NULL , CENTER_DATA },
+   { LAST_OBJECT, 10, LINE2, 2U, MULTI_EDIT_DATA,  NULL, (void*)vSetDateForMenu, 0 , CENTER_DATA },
 };
 
 static xScreenObjet const ControlTypeScreen[]=

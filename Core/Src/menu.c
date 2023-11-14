@@ -281,7 +281,7 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 		        		  	   if ( (menu->pHomeMenu[index].pScreenCurObjets[i].xType == EDIT_DATA) ||
 		        		  			  (menu->pHomeMenu[index].pScreenCurObjets[i].xType == MULTI_EDIT_DATA) )
 		        		  	   {
-		        		  	       menu->pHomeMenu[index].pEitObject = &(menu->pHomeMenu[index].pScreenCurObjets[i]);
+		        		  	       menu->pHomeMenu[index].pEitObject = (xScreenObjet*)&(menu->pHomeMenu[index].pScreenCurObjets[i]);
 		        		  	       break;
 		        		  	   }
 		        		  	   if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
@@ -364,7 +364,8 @@ void xPassScreenCallBack ( xScreenSetObject* menu, char key )
 	    {
 			if (menu->pHomeMenu[index].pScreenCurObjets[i].xType == MULTI_EDIT_DATA)
 			{
-				menu->pHomeMenu[index].pEitObject = &(menu->pHomeMenu[index].pScreenCurObjets[i]);
+				menu->pHomeMenu[index].pEitObject =(xScreenObjet*
+						) &(menu->pHomeMenu[index].pScreenCurObjets[i]);
 				break;
 			}
 			if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
@@ -542,9 +543,6 @@ void xJournalScreenCallBack ( xScreenSetObject* menu, char key )
 }
 
 
-
-
-
 void xMainScreenCallBack ( xScreenSetObject* menu, char key )
 {
 	uint8_t           index = menu->pCurrIndex;
@@ -626,8 +624,6 @@ void StartMenuTask(void *argument)
 	    	    	SET_MENU1 = 0;
 	    	    	flag = 0;
 	    	  }
-
-
 	    	  if ((timer < SETINGS_MENU_TIMEOUT) && (SET_MENU == 0) && (SET_MENU1==0))
 	    	  {
 	    		  switch (key)

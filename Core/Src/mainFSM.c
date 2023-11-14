@@ -1,10 +1,17 @@
 #include "MainFSM.h"
 #include "mb.h"
-
-
+#include "main.h"
+#include "data_model.h"
+extern RTC_HandleTypeDef hrtc;
 static uint16_t system_regs[DEVICE_HOLDING  ];
 static uint8_t MB_FSM = 0;
-extern RTC_HandleTypeDef hrtc;
+static EventGroupHandle_t system_event;
+static RTC_TimeTypeDef time;
+static RTC_DateTypeDef date;
+static CONFIG_ENABLE_t ConfigEnable = 0;
+/*
+ *
+ */
 uint16_t usGetRegInput( uint16_t reg_addr)
 {
 	uint16_t usRes=0;
@@ -18,13 +25,24 @@ uint16_t usGetRegInput( uint16_t reg_addr)
 		case 5:
 		case 6:
 		case 7:
-		case 8:
+		case 8:if (int8GetRegister( DEVICE_OUTPUT_REG ) && (0x01 << WORK_OUT_FLAG))
+			   {
 			   uint64_t temp = int32GetData( LAM_ERROR_REG_LSB ) | (((uint64_t)int32GetData( LAM_ERROR_REG_MSB ))<<22);
-					usRes =  temp >>( 11* (reg_addr-5) )  & 0x7FF; break;
+					usRes =  temp >>( 11* (reg_addr-5) )  & 0x7FF;
+			   }
+
+				break;
 		case 98:  usRes =int8GetRegister( DEVICE_ALARM_REG ); 	   break;
 		case 99:  usRes =int8GetRegister( DEVICE_INPUT_REG );	   break;
 		case 100: usRes =int8GetRegister( DEVICE_OUTPUT_REG );	   break;
 		case 101: usRes =int16GetRegister( RECORD_COUNT );		   break;
+		case 102: HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN); usRes = date.Date; break;
+		case 103: HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN); usRes = date.Month; break;
+		case 104: HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN); usRes = date.Year; break;
+		case 105: HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);usRes = time.Hours; break;
+		case 106: HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);usRes = time.Minutes; break;
+		case 107:HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);usRes = time.Seconds; break;
+		case 108: usRes = 0x5434; break;
 		default:
 			if ((reg_addr >=9) && (reg_addr <53)) usRes = int8GetRegister( LAMP_MAX_TIME_INDEX + reg_addr-9)*1000;
 			if ((reg_addr>= 53) && (reg_addr< 97))   usRes = int8GetRegister( LAMP_RESURSE_INDEX + reg_addr-53);
@@ -34,98 +52,154 @@ uint16_t usGetRegInput( uint16_t reg_addr)
     return  (usRes);
 }
 
-static RTC_TimeTypeDef time;
-static RTC_DateTypeDef date;
+/*
+ *
+ */
 void vSetReg(REGS_t reg_addr, uint16_t data)
 {
-    if (reg_addr == SCADA_CONTROL_ADDR) int8SetRegister(SCADA_CONTROL_REG, (uint8_t)data);
-    if (reg_addr == COMMAND_REG )
-    {
-    	switch (data)
-    	{
-    		case READ_DATE:
-    			HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
-    			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
-    			system_regs[DATE_OFFSET] = date.Date;
-    			system_regs[MOUNTH_OFFSET] = date.Month;
-    			system_regs[YEAR_OFFSET] = date.Year;
-    			system_regs[HOUR_OFFSET] = time.Hours;
-    			system_regs[MINUTE_OFFSET] = time.Minutes;
-    			system_regs[SECOND_OFFSET] = time.Seconds;
-    			break;
-    		case SET_DATE:
-    			date.Date    = system_regs[DATE_OFFSET];
-    			date.Month   = system_regs[MOUNTH_OFFSET];
-    			date.Year 	 = system_regs[YEAR_OFFSET];
-    			time.Hours 	 = system_regs[HOUR_OFFSET];
-    			time.Minutes = system_regs[MINUTE_OFFSET];
-    			time.Seconds = system_regs[SECOND_OFFSET];
-    			HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-    			HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
-    			break;
-    		case RESET_JOURNAL:
-    			int16SetRegister( RECORD_COUNT , 0);
-    			break;
-    		case READ_RECORD:
-    			vGetRecord(system_regs[ADDRESS_OFFSET],((uint8_t *)&system_regs[DATA_OFFSET]),&time,&date );
+	switch ( reg_addr)
+	{
+		case  SCADA_CONTROL_ADDR:
+			int8SetRegister(SCADA_CONTROL_REG, (uint8_t)data);
+			break;
+		case  CONFIG_ENABLE_REG:
+			if ( data == 0x00 )
+			{
+				xEventGroupSetBits(system_event,SYSTEM_RESTART);
+				ConfigEnable =  CONFIG_DISABLE;
+			}
+			else if ( data == 0x01 )
+			{
+				xEventGroupSetBits(system_event,SYSTEM_IDLE);
+				ConfigEnable =  CONFIG_ENABLE;
+			}
+			break;
 
-    			system_regs[DATE_OFFSET] = date.Date;
-    			system_regs[MOUNTH_OFFSET] = date.Month;
-    			system_regs[YEAR_OFFSET] = date.Year;
-    			system_regs[HOUR_OFFSET] = time.Hours;
-    			system_regs[MINUTE_OFFSET] = time.Minutes;
-    			system_regs[SECOND_OFFSET] = time.Seconds;
-    			break;
-    		case RESET_RESOURSE:
-    			if (system_regs[ADDRESS_OFFSET] > 0 )
-    				vResetLampRecource(system_regs[ADDRESS_OFFSET]);
-    			break;
-    		case RESET_RESOIRSE_ALL:
-    			vResetLampRecource( 0 );
-    			break;
-    		case SET_RESOURCE:
-    			if (( system_regs[ADDRESS_OFFSET]> 0)  &&  ( system_regs[ADDRESS_OFFSET]<=44 ))
-    			{
-    				vSetLampRecource( system_regs[ADDRESS_OFFSET] , system_regs[DATA_OFFSET]/1000 );
-    			}
-    			break;
-    		case SET_RESOURCE_ALL:
-    			vSetLampRecource( 0 , system_regs[DATA_OFFSET]/1000 );
-    			break;
-    	}
-    }
+		case COMMAND_REG:
+
+		   if (data == READ_RECORD)
+			{
+					vGetRecord(system_regs[ADDRESS_OFFSET],((uint8_t *)&system_regs[DATA_OFFSET]),&time,&date );
+					system_regs[DATE_OFFSET] = date.Date;
+					system_regs[MOUNTH_OFFSET] = date.Month;
+					system_regs[YEAR_OFFSET] = date.Year;
+					system_regs[HOUR_OFFSET] = time.Hours;
+					system_regs[MINUTE_OFFSET] = time.Minutes;
+					system_regs[SECOND_OFFSET] = time.Seconds;
+			}
+			if ( ConfigEnable ==  CONFIG_ENABLE )
+			{
+					switch (data)
+					{
+						case RESET_JOURNAL:
+							int16SetRegister( RECORD_COUNT , 0);
+							break;
+						case RESET_RESOURSE:
+							if (system_regs[ADDRESS_OFFSET] > 0 )  vResetLampRecource(system_regs[ADDRESS_OFFSET]);
+							break;
+						case RESET_RESOIRSE_ALL:
+							vResetLampRecource( 0 );
+							break;
+						case SET_RESOURCE:
+							if ( ( system_regs[ ADDRESS_OFFSET ] > 0) && ( system_regs[ ADDRESS_OFFSET ] <= 44 ) )
+							{
+								vSetLampRecource( system_regs[ADDRESS_OFFSET] , system_regs[SET_LAM_DATA_OFFSET ]/1000 );
+							}
+							break;
+						case SET_RESOURCE_ALL:
+							vSetLampRecource( 0 , system_regs[SET_LAM_DATA_OFFSET ]/1000 );
+							break;
+						default:
+							break;
+					}
+				}
+			break;
+		case SET_DATE_REG:
+			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 31) && ( data >0 ) )
+			{
+				HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+				date.Date = data;
+				HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+			}
+			break;
+		case SET_MOUNTH_REG:
+			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 12) && ( data >0) )
+			{
+				HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+				date.Month = data;
+				HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+			}
+			break;
+		case SET_YEAR_REG:
+			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 99) )
+			{
+				HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+				date.Year = data;
+				HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+			}
+			break;
+		case SET_HOUR_REG:
+			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 23) )
+			{
+				HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+				time.Hours  = data;
+				HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+			}
+			break;
+		case SET_MIN_REG :
+			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 59) )
+			{
+				HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+				time.Minutes  = data;
+				HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+			}
+			break;
+		case SET_SEC_REG	:
+			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 59) )
+			{
+				HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+				time.Seconds  = data;
+				HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+			}
+			break;
+		default:
+			break;
+	}
 	system_regs[ reg_addr] = data;
+	return;
 }
-
+/*
+ *
+ */
 uint16_t usGetReg( uint16_t reg_addr)
 {
 	return  (system_regs[ reg_addr ]);
 }
 
-
+/*
+ *
+ */
 void StartMb(void *argument)
 {
-	 EventGroupHandle_t system_event = xGetSystemUpdateEvent();
+	 system_event = xGetSystemUpdateEvent();
      while (1)
      {
     	 switch (MB_FSM)
     	 {
-
     	 	 case 0:
     	 		 eMBDisable();
+    	 		 xEventGroupClearBits(system_event, MB_RESTART );
     	 		 xEventGroupWaitBits(system_event, MB_START, pdTRUE, pdTRUE, portMAX_DELAY );
     	 		 uint8_t addres  = int8GetRegister(MODBUS_ADDRES );
     	 		 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
-
-
-    	 		 vSetReg(11,0x5434);
+    	 		// vSetReg(11,0x5434);
     	 		 eMBEnable();
     	 		 MB_FSM = 1;
     	 		 break;
     	 	 default:
     	 		 eMBPoll();
     	 		 vTaskDelay(10);
-    	 		 if (xEventGroupGetBits(system_event) & SYSTEM_IDLE)
+    	 		 if (xEventGroupGetBits(system_event) &  MB_RESTART )
     	 		 {
     	 			 MB_FSM = 0;
     	 		 }

@@ -51,7 +51,7 @@ Core/Src/mainFSM.o: ../Core/Src/mainFSM.c ../Core/Inc/MainFSM.h \
  ../Core/Inc/lamp.h ../Core/Inc/MainFSM.h ../Core/Inc/data_model.h \
  ../Core/Inc/menu.h ../FreeModbus/inc/mb.h ../FreeModbus/inc/port.h \
  ../FreeModbus/inc/mbconfig.h ../FreeModbus/inc/mbport.h \
- ../FreeModbus/inc/mbproto.h
+ ../FreeModbus/inc/mbproto.h ../Core/Inc/main.h ../Core/Inc/data_model.h
 ../Core/Inc/MainFSM.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
@@ -113,3 +113,5 @@ Core/Src/mainFSM.o: ../Core/Src/mainFSM.c ../Core/Inc/MainFSM.h \
 ../FreeModbus/inc/mbconfig.h:
 ../FreeModbus/inc/mbport.h:
 ../FreeModbus/inc/mbproto.h:
+../Core/Inc/main.h:
+../Core/Inc/data_model.h:

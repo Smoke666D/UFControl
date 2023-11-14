@@ -146,6 +146,9 @@ typedef enum
 #define FOURTH_BYTE_ADDR  3
 
 #define REGISTER_LAST_ADR (LAMP44   + 1)
+
+
+void InitDataModel();
 void vEditLampCount(DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 //void int16SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data);
 void int16SetRegister(uint16_t addres, uint16_t data);

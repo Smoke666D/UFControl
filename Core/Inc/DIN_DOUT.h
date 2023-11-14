@@ -92,7 +92,7 @@ typedef enum {
 
 
 
-
+uint8_t GetLowPowerState();
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi);
 void StartDIN_DOUT(void *argument);
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);

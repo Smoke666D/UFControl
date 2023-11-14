@@ -10,17 +10,13 @@
 #include "data_model.h"
 
 
-uint8_t GetLowPowerState()
-{
-	return 0;
-}
+
 
 void StartControlTask(void *argument)
 {
 	CONTROLLER_STATE_t state =  CONTROLLER_IDLE;
 	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
 	uint8_t control_type = 0;
-	uint8_t LOW_POWER = 0;
 	uint8_t START = 0;
 	uint8_t WARNNING_MASK = 0;
 	xEventGroupSetBits(system_event, SYSTEM_REINIT);
@@ -29,13 +25,13 @@ void StartControlTask(void *argument)
 	   vTaskDelay(1);
 	   if ( GetLowPowerState() )
 	   {
-		   xEventGroupSetBits(system_event,  LCD_OFF);
-		   xEventGroupSetBits(system_event,SYSTEM_IDLE);
-		   state = CONTROLLER_IDLE;
 		   if (START == 1)
 		   {
+			   xEventGroupSetBits(system_event,  LCD_OFF);
+			   xEventGroupSetBits(system_event,SYSTEM_IDLE);
+			   int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, 0 );
+			   state = CONTROLLER_IDLE;
 			   START = 0;
-			   vLAMWorkHoursWrite();
 		   }
 	   }
 	   else
@@ -47,21 +43,26 @@ void StartControlTask(void *argument)
 			   state = CONTROLLER_INIT;
 		   }
 	   }
-	   if  (( xEventGroupGetBits(system_event) & SYSTEM_RESTART) && (state==CONTROLLER_IDLE))
+	   if  ( ( xEventGroupGetBits( system_event ) & SYSTEM_RESTART ) && ( state == CONTROLLER_IDLE ) )
 	   {
 		  state = CONTROLLER_INIT;
 		  xEventGroupClearBits(system_event,  SYSTEM_STOP);
 		  xEventGroupClearBits(system_event,  SYSTEM_RESTART);
 		  xEventGroupSetBits(system_event, SYSTEM_REINIT);
 	   }
-	   if  (( xEventGroupGetBits(system_event) & SYSTEM_STOP) && (state!=CONTROLLER_IDLE))
+	   else
+	   if ( ( xEventGroupGetBits( system_event ) & SYSTEM_IDLE ) && ( state != CONTROLLER_IDLE ) )
 	   {
-		   xEventGroupSetBits(system_event,SYSTEM_IDLE);
+		   state = CONTROLLER_IDLE;
+	   }
+	   else
+	   if  ( ( xEventGroupGetBits( system_event ) & SYSTEM_STOP ) && ( state != CONTROLLER_IDLE ) )
+	   {
+		   xEventGroupSetBits(system_event, SYSTEM_IDLE );
+		   xEventGroupSetBits(system_event, MB_RESTART );
 		   state = CONTROLLER_IDLE;
 	   }
 	   int8SetRegisterBit( DEVICE_OUTPUT_REG, ALARM_OUT_FLAG,  int8GetRegister(DEVICE_ALARM_REG) & ERROR_LAM_FLAG );
-
-
 		switch (state)
 		{
 			case CONTROLLER_INIT:

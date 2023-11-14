@@ -34,7 +34,6 @@ static const char * ErrorStrings[] ={ "Аварий нет",
 										"Напряжение<198В",
 										"Напряжение>250В"
 	};
-
 /*
  *
  */
@@ -77,7 +76,6 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
     	default:
 
     		break;
-
     }
     return;
 }
@@ -403,7 +401,6 @@ void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 		index = ( max_index == 0 ) ? 0 : max_index -1 ;
 		vSetDataViewIndex( index );
 	}
-
 	switch (ID)
 	{
 		case TOTAL_RECORD:
@@ -425,7 +422,8 @@ void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			vGetRecord( index ,(uint8_t *)&flag,&time,&date );
 			sprintf(Data,"%02u:%02u:%02u  %02u.%02u.20%02u",time.Hours,time.Minutes,time.Seconds,date.Date,date.Month,date.Year);
 			break;
-
+		default:
+			break;
 	}
 
 }
@@ -496,7 +494,7 @@ void vSetLampRecource( uint8_t lamp_index, uint16_t recource)
 	{
 		if ( lamp_index <= LAMP_COUNT )
 		{
-			int8SetRegister(LAMP_MAX_TIME_INDEX + lamp_index - 1 , (uint8_t)EditDATA );
+			int8SetRegister(LAMP_MAX_TIME_INDEX + lamp_index - 1 , (uint8_t)recource );
 			eEEPROMWr(LAMP_MAX_TIME_INDEX + lamp_index -1 ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + lamp_index - 1 ], 1 );
 		}
 	}
@@ -507,7 +505,6 @@ void vSetLampRecource( uint8_t lamp_index, uint16_t recource)
 
 void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
-
 	switch ( cmd)
 	{
 		case  mREAD:
@@ -522,15 +519,14 @@ void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			}
          	break;
 		 case mINC:
-				 EditFlag = 1;
-				if ( ++EditDATA > int8GetRegister(LAMP_COUNT ))  EditDATA = int8GetRegister(LAMP_COUNT );
-				break;
+			EditFlag = 1;
+			if ( ++EditDATA > int8GetRegister(LAMP_COUNT ))  EditDATA = int8GetRegister(LAMP_COUNT );
+			break;
 		case mDEC:
-				EditFlag = 1;
-				if ( EditDATA > 0)  EditDATA--;
+			EditFlag = 1;
+			if ( EditDATA > 0)  EditDATA--;
 			break;
 		case mSAVE:
-
 			vResetLampRecource(EditDATA);
 		case mESC:
 			EditDATA = 0;
@@ -655,9 +651,7 @@ void vSetTimeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 				}
 				break;
 			 case mSAVE:
-
 					HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-
 			 case mESC:
 					EditFlag = 0;
 					EditDATA = 0;
@@ -750,9 +744,6 @@ void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	}
 }
 
-
-
-
 uint32_t int32GetData( uint16_t index )
 {
 	return  (*((uint32_t *)&DATA_MODEL_REGISTER[index]));
@@ -762,18 +753,6 @@ void int32SetData( uint16_t index, uint32_t data)
 
 	(*((uint32_t *)&DATA_MODEL_REGISTER[index])) = data;
 }
-
-
-/*void int16SetRegisterBit(uint16_t addres, uint8_t bits, uint8_t data)
-{
-	if ( addres < TOTAL_REGISTER_COUNT  )
-	{
-		if (data != 0)
-			*((uint16_t *)&DATA_MODEL_REGISTER[addres]) |= 0x1 << bits;
-		else
-			*((uint16_t *)&DATA_MODEL_REGISTER[addres])  &= ~(0x1 << bits);
-	}
-}*/
 
 uint16_t int16GetRegister(uint16_t addres)
 {
@@ -965,7 +944,7 @@ void InitDataModel()
  */
 void vLAMWorkHoursWrite()
 {
-	eEEPROMWr(LAMP_WORK_HOURS_INDEX,DATA_MODEL_REGISTER,LAMP_WORK_HOURS_SIZE );
+	eEEPROMWr(LAMP_WORK_HOURS_INDEX,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],LAMP_WORK_HOURS_SIZE );
 }
 
 void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateTypeDef * date)
@@ -993,7 +972,7 @@ void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateT
 	  }
 
 	  eEEPROMRd(EEPROM_REGISER_COUNT +  index*RECORD_SIZE  ,pData , RECORD_SIZE );
-      *flag = pData[0];
+      *flag = 		  pData[0];
       date->Date	= pData[1];
       date->Month 	= pData[2];
       date->Year 	= pData[3];

@@ -413,7 +413,13 @@ static uint8_t V250_ALARM = 0;
 static uint8_t V187_ALARM = 0;
 static uint8_t V198_ALARM = 0;
 
-#define DELAY_START 100
+#define DELAY_START 200
+uint8_t switch_off = 0;
+uint8_t GetLowPowerState()
+{
+	return switch_off;
+}
+
 
 void StartDIN_DOUT(void *argument)
 {
@@ -423,7 +429,7 @@ void StartDIN_DOUT(void *argument)
 	int16_t iMax =0;
     uint16_t old= 0;
 	uint16_t DF1;
-	uint8_t switch_off = 0;
+
 	uint16_t delay = 0;
 	uint8_t ac_ready = 0;
 	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
@@ -474,11 +480,10 @@ void StartDIN_DOUT(void *argument)
 					uint8_t uсDinState = HAL_GPIO_ReadPin( xDinPortConfig[i].GPIOx, xDinPortConfig[i].Pin);
 					if (uсDinState != xDinConfig[i].ucTempValue )
 					{
-							xDinConfig[i].ulCounter ++ ;
+							xDinConfig[i].ulCounter ++;
 							if (xDinConfig[i].ulCounter > ( (xDinConfig[i].ucTempValue == GPIO_PIN_RESET) ? xDinConfig[i].ulHighCounter : xDinConfig[i].ulLowCounter ) )
 							{
 									xDinConfig[i].ucValue = uсDinState  ^ ( (~xDinConfig[i].eInputType) & 0x1);
-
 								    xDinConfig[i].ucTempValue = uсDinState ;
 							}
 					}

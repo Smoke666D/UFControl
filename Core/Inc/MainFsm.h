@@ -17,9 +17,9 @@
 #define  DEVICE_COIL_START     (DEVICE_DINPUT_START + DEVICE_DINPUT)
 #define  DEVICE_COIL		   0
 #define  DEVICE_INPUT_START    ( DEVICE_COIL_START + DEVICE_COIL)
-#define  DEVICE_INPUT		   102
+#define  DEVICE_INPUT		   (102+7)
 #define  DEVICE_HOLDING_START  (DEVICE_INPUT_START + DEVICE_INPUT)
-#define  DEVICE_HOLDING        13
+#define  DEVICE_HOLDING        18
 
 
 #define SCADA_CONTROL_OFFSET    0x00
@@ -33,15 +33,33 @@
 #define HOUR_OFFSET				0x08
 #define MINUTE_OFFSET           0x09
 #define SECOND_OFFSET			0x0A
-#define ID_OFFSET				0x0B
+#define SET_DATE_OFFSET         11
+#define SET_MOUNTH_OFFSET       12
+#define SET_YEAR_OFFSET				13
+#define SET_HOUR_OFFSET				14
+#define SET_MINUTE_OFFSET           15
+#define SET_SECOND_OFFSET			16
+#define SET_LAM_DATA_OFFSET         17
 
 
 #define SCADA_CONTROL_ADDR  (0)
-#define CONFIG_ENABLE_REG   (SCADA_CONTROL_ADDR +1)
-#define ADDRESS_REG 		(CONFIG_ENABLE_REG  +1)
-#define COMMAND_REG 		(ADDRESS_REG +1)
-#define DATA_REG    		(COMMAND_REG +1)
-
+#define CONFIG_ENABLE_REG   ( SCADA_CONTROL_ADDR + 1 )
+#define ADDRESS_REG 		( CONFIG_ENABLE_REG  + 1 )
+#define COMMAND_REG 		( ADDRESS_REG +1 )
+#define DATA_REG    		( COMMAND_REG +1 )
+#define JOURNAL_DATE_REG    ( DATA_REG +1 )
+#define JOURNAL_MOUNTH_REG  ( JOURNAL_DATE_REG + 1 )
+#define JOURNAL_YEAR_REG    ( JOURNAL_MOUNTH_REG +1 )
+#define JOURNAL_HOUR_REG    ( JOURNAL_YEAR_REG + 1 )
+#define JOURNAL_MIN_REG     ( JOURNAL_HOUR_REG +1 )
+#define JOURNAL_SEC_REG     ( JOURNAL_MIN_REG + 1 )
+#define SET_DATE_REG        ( JOURNAL_SEC_REG + 1 )
+#define SET_MOUNTH_REG      ( SET_DATE_REG + 1 )
+#define SET_YEAR_REG        ( SET_MOUNTH_REG + 1 )
+#define SET_HOUR_REG        ( SET_YEAR_REG + 1 )
+#define SET_MIN_REG         ( SET_HOUR_REG + 1 )
+#define SET_SEC_REG			( SET_MIN_REG + 1 )
+#define SET_LAMP_DATA       ( SET_SEC+REG + 1 )
 
 #define RESET_RESOURSE 		0x5501
 #define RESET_RESOIRSE_ALL  0x5500
@@ -51,6 +69,13 @@
 #define READ_RECORD			0X2201
 #define SET_DATE			0x3300
 #define READ_DATE           0x3301
+
+typedef enum
+{
+ CONFIG_ENABLE = 1,
+ CONFIG_DISABLE = 0,
+} CONFIG_ENABLE_t;
+
 
 typedef enum
  {
