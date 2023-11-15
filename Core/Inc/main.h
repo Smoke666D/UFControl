@@ -76,6 +76,7 @@ void Error_Handler(void);
 #define MB_START				0x2000
 #define AC_CONTROL_READY        0x4000
 #define MB_RESTART              0x8000
+#define KEYBOARD_START          0x10000
 void vStartTimer();
 void vStopTimer();
 EventGroupHandle_t xGetSystemUpdateEvent();

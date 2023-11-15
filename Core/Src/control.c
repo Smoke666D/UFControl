@@ -72,6 +72,7 @@ void StartControlTask(void *argument)
 				xEventGroupClearBits(system_event,   SYSTEM_REINIT);
 				xEventGroupSetBits(system_event,     SYSTEM_READY);
 				xEventGroupSetBits(system_event,     MB_START);
+				xEventGroupSetBits(system_event,     KEYBOARD_START);
 				state = CONTROLLER_WORK;
 				control_type =  int8GetRegister(CONTROL_TYPE_REG );
 				break;

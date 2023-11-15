@@ -53,9 +53,12 @@ void vKeyboardTask( void * argument )
 {
   KeyEvent      TEvent;
   uint16_t 		key_no_press_timeout = 0;
+
   vConfigKeyboard();
+  EventGroupHandle_t system_event = xGetSystemUpdateEvent();
   for(;;)
   {
+	  xEventGroupWaitBits(system_event,KEYBOARD_START, pdFALSE, pdTRUE, portMAX_DELAY );
 	  vTaskDelay(KEY_PEREOD);
 	  for ( uint8_t i= 0U; i < KEYBOARD_COUNT; i++ )
 	  {
