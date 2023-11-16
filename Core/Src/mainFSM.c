@@ -45,7 +45,7 @@ uint16_t usGetRegInput( uint16_t reg_addr)
 		case 107:HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);usRes = time.Seconds; break;
 		case 108: usRes = 0x5434; break;
 		default:
-			if ((reg_addr >=9) && (reg_addr <53)) usRes = int8GetRegister( LAMP_MAX_TIME_INDEX + reg_addr-9)*1000;
+			if ((reg_addr >=9) && (reg_addr <53)) usRes = int8GetRegister( LAMP_MAX_TIME_INDEX + reg_addr-9)*res_mul;
 			if ((reg_addr>= 53) && (reg_addr< 97))   usRes = int8GetRegister( LAMP_RESURSE_INDEX + reg_addr-53);
 			break;
 	}
@@ -109,13 +109,16 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 							vResetLampRecource( 0 );
 							break;
 						case SET_RESOURCE:
-							if ( ( system_regs[ ADDRESS_OFFSET ] > 0) && ( system_regs[ ADDRESS_OFFSET ] <= 44 ) )
+							if ( ( system_regs[ ADDRESS_OFFSET ] > 0) && ( system_regs[ ADDRESS_OFFSET ] <= MAX_LAMP_COUNT ) )
 							{
-								vSetLampRecource( (uint8_t)system_regs[ADDRESS_OFFSET] , system_regs[SET_LAM_DATA_OFFSET ]/1000 );
+								if ((system_regs[SET_LAM_DATA_OFFSET ] > 0 ) && (system_regs[SET_LAM_DATA_OFFSET ] <= MAX_RESOURCE))
+								{
+									vSetLampRecource( (uint8_t)system_regs[ADDRESS_OFFSET] , system_regs[SET_LAM_DATA_OFFSET ]/res_mul );
+								}
 							}
 							break;
 						case SET_RESOURCE_ALL:
-							vSetLampRecource( 0 , system_regs[SET_LAM_DATA_OFFSET ]/1000 );
+							vSetLampRecource( 0 , system_regs[SET_LAM_DATA_OFFSET ]/res_mul );
 							break;
 						default:
 							break;

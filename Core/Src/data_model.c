@@ -376,7 +376,7 @@ void vGetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			vSetLampCount(cmd,Data);
 			break;
 		case LAMP_RES_DATA_ID:
-			sprintf(Data,"%u ч", (uint16_t)int8GetRegister(LAMP_MAX_TIME_INDEX + index) * 1000 );
+			sprintf(Data,"%u ч", (uint16_t)int8GetRegister(LAMP_MAX_TIME_INDEX + index) * res_mul );
 			//vSetResLampMenu(cmd, Data, index);
 
 			break;
@@ -450,20 +450,24 @@ void vSetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			switch (cmd)
 				{
 				  case mREAD:
-					  if (EditFlag)
-						  sprintf(Data,"%u ч", (uint8_t)EditDATA * 1000);
-					  else
-						  sprintf(Data,"%u ч", (uint16_t)int8GetRegister(LAMP_MAX_TIME_INDEX + index) * 1000 );
+					  if (EditFlag==0)
+					  {
+						  EditDATA = int8GetRegister(LAMP_MAX_TIME_INDEX + index);
+					  }
+					  sprintf(Data,"%u ч", (uint8_t)EditDATA * res_mul);
 					  break;
 				  case mINC:
 					  if (EditFlag == 0) EditDATA = int8GetRegister(LAMP_MAX_TIME_INDEX + index);
 					  EditFlag = 1;
-					  if ( ++EditDATA > 13 )  EditDATA= 1;
+					  if ( ++EditDATA > MAX_RESOURCE )  EditDATA= 1;
 					 break;
 				  case mDEC:
 					  if (EditFlag == 0) EditDATA = int8GetRegister(LAMP_MAX_TIME_INDEX + index);
 					  EditFlag = 1;
-					  if ( --EditDATA == 0)  EditDATA= 1;
+					  if (EditDATA > 0 )
+					  {
+						  if ( --EditDATA == 0)  EditDATA= 1;
+					  }
 					  break;
 				  case mSAVE:
 					  EditFlag = 0;
@@ -560,8 +564,8 @@ void vResetLampRecource(uint8_t lamp_index)
 {
 	if (lamp_index == 0)
 	{
-		memset(&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],0,44*4);
-		eEEPROMWr(LAMP_WORK_HOURS_INDEX ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],44*4);
+		memset(&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],0,MAX_LAMP_COUNT*4);
+		eEEPROMWr(LAMP_WORK_HOURS_INDEX ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],MAX_LAMP_COUNT*4);
 	}
 	else
 	{
@@ -584,11 +588,11 @@ void vResetLampRecource(uint8_t lamp_index)
 					break;
 				  case mINC:
 				    EditFlag = 1;
-				    if ( ++EditDATA > 44 )  EditDATA = 44;
+				    if ( ++EditDATA > MAX_LAMP_COUNT )  EditDATA = MAX_LAMP_COUNT;
 				    break;
 				 case mDEC:
 					EditFlag = 1;
-					if ( EditDATA > 0)  EditDATA--;
+					if ( EditDATA > 1)  EditDATA--;
 					break;
 				case mSAVE:
 					int8SetRegister(LAMP_COUNT, (uint8_t)EditDATA );
@@ -611,7 +615,7 @@ static void vSetLampCount(DATA_COMMNAD_TYPE cmd, char* Data)
 					break;
 				  case mINC:
 				    EditFlag = 1;
-				    if ( ++EditDATA > 44 )  EditDATA = 44;
+				    if ( ++EditDATA > MAX_LAMP_COUNT )  EditDATA = MAX_LAMP_COUNT;
 				    break;
 				 case mDEC:
 					EditFlag = 1;
@@ -740,12 +744,12 @@ void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			  temp_data = EditDATA;
 		  else
 			  temp_data = 1;
-		  sprintf(Data,"%u ч", (uint8_t)temp_data * 1000);
+		  sprintf(Data,"%u ч", (uint8_t)temp_data * res_mul);
 		  break;
 	  case mINC:
 		  if ( EditFlag == 0 ) EditDATA = 1;
 		  EditFlag = 1;
-		  if ( ++EditDATA > 13 )  EditDATA= 1;
+		  if ( ++EditDATA > MAX_RESOURCE )  EditDATA= 1;
 		 break;
 	  case mDEC:
 		  if ( EditFlag == 0 ) EditDATA = 1;
@@ -939,7 +943,7 @@ void InitDataModel()
 			*((uint16_t*)&DATA_MODEL_REGISTER[PASSWORD ]) = 7643;
 			DATA_MODEL_REGISTER[CONTROL_TYPE_REG ] = (0x01<<LOCAL_TYPE);
 			DATA_MODEL_REGISTER[MODBUS_ADDRES  ] = 0x01;
-			DATA_MODEL_REGISTER[LAMP_COUNT]= 44;
+			DATA_MODEL_REGISTER[LAMP_COUNT]= MAX_LAMP_COUNT;
 			*((uint16_t *)&DATA_MODEL_REGISTER[RECORD_INDEX  ])	= 0;
 			*((uint16_t *)&DATA_MODEL_REGISTER[RECORD_COUNT ])	= 0;
 			*((uint16_t *)&DATA_MODEL_REGISTER[FBO_SIZE_A ]) 	= 1000;
@@ -953,6 +957,10 @@ void InitDataModel()
 			DATA_MODEL_REGISTER[DAY] 	= 0;
 			DATA_MODEL_REGISTER[MOUNTH] = 0;
 			DATA_MODEL_REGISTER[YEAR] 	= 0;
+			for (int i=0;i<MAX_LAMP_COUNT;i++)
+			{
+				DATA_MODEL_REGISTER[i+LAMP_MAX_TIME_INDEX] = 8;
+			}
 			eEEPROMWr(VALID_CODE_ADDRES,DATA_MODEL_REGISTER,EEPROM_REGISER_COUNT);
 			memset(DATA_MODEL_REGISTER,0,EEPROM_REGISER_COUNT);
 			eEEPROMRd(0x00 ,DATA_MODEL_REGISTER , EEPROM_REGISER_COUNT);

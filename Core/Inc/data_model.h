@@ -11,8 +11,10 @@
 #include "EEPROM.h"
 #include "menu.h"
 
+#define res_mul  1000
+#define MAX_RESOURCE   13
 
-#define VALID_CODE      0x44
+#define VALID_CODE      0x69
 /* описание регистра в регисторвой модели*/
 #define VALID_CODE_ADDRES   0
 #define PASSWORD           ( VALID_CODE_ADDRES +1  )
