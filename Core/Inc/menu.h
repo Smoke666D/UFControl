@@ -162,4 +162,5 @@ void xJournalScreenCallBack ( xScreenSetObject* menu, char key );
 void vMenu( void);
 void vMenuInit();
 void StartMenuTask(void *argument);
+uint8_t GetEditFlag();
 #endif /* SRC_MENU_H_ */

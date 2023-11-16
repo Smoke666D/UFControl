@@ -2,6 +2,7 @@
 #include "mb.h"
 #include "main.h"
 #include "data_model.h"
+#include "stdio.h"
 extern RTC_HandleTypeDef hrtc;
 static uint16_t system_regs[DEVICE_HOLDING  ];
 static uint8_t MB_FSM = 0;
@@ -65,13 +66,20 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 		case  CONFIG_ENABLE_REG:
 			if ( data == 0x00 )
 			{
+				xEventGroupClearBits(system_event,MB_EDIT);
 				xEventGroupSetBits(system_event,SYSTEM_RESTART);
 				ConfigEnable =  CONFIG_DISABLE;
 			}
 			else if ( data == 0x01 )
 			{
-				xEventGroupSetBits(system_event,SYSTEM_IDLE);
-				ConfigEnable =  CONFIG_ENABLE;
+				if ( ( xEventGroupGetBits(system_event) & MENU_EDIT ) != MENU_EDIT )
+				{
+					xEventGroupSetBits(system_event,SYSTEM_IDLE | MB_EDIT);
+					ConfigEnable =  CONFIG_ENABLE;
+				}
+				else
+					data = 0;
+
 			}
 			break;
 
@@ -92,7 +100,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 					switch (data)
 					{
 						case RESET_JOURNAL:
-							int16SetRegister( RECORD_COUNT , 0);
+							JournalClear();
 							break;
 						case RESET_RESOURSE:
 							if (system_regs[ADDRESS_OFFSET] > 0 )  vResetLampRecource(system_regs[ADDRESS_OFFSET]);
@@ -103,7 +111,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 						case SET_RESOURCE:
 							if ( ( system_regs[ ADDRESS_OFFSET ] > 0) && ( system_regs[ ADDRESS_OFFSET ] <= 44 ) )
 							{
-								vSetLampRecource( system_regs[ADDRESS_OFFSET] , system_regs[SET_LAM_DATA_OFFSET ]/1000 );
+								vSetLampRecource( (uint8_t)system_regs[ADDRESS_OFFSET] , system_regs[SET_LAM_DATA_OFFSET ]/1000 );
 							}
 							break;
 						case SET_RESOURCE_ALL:
@@ -120,6 +128,8 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 				HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 				date.Date = data;
 				HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+				int8SetRegister(DAY,data);
+
 			}
 			break;
 		case SET_MOUNTH_REG:
@@ -128,6 +138,8 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 				HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 				date.Month = data;
 				HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+				int8SetRegister(MOUNTH,data);
+
 			}
 			break;
 		case SET_YEAR_REG:
@@ -136,6 +148,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 				HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 				date.Year = data;
 				HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+				int8SetRegister(YEAR,data);
 			}
 			break;
 		case SET_HOUR_REG:
@@ -182,6 +195,7 @@ uint16_t usGetReg( uint16_t reg_addr)
 void StartMb(void *argument)
 {
 	 system_event = xGetSystemUpdateEvent();
+	 memset(system_regs,0, DEVICE_HOLDING * 2 );
      while (1)
      {
     	 switch (MB_FSM)

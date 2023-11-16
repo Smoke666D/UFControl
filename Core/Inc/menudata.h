@@ -16,7 +16,7 @@
 #define USER_MENU_COUNT	     7
 #define CONTROL_TYPE         8
 #define STATUS_MENU_COUNT    4
-#define SETTINGS_MENU_COUNT  7
+#define SETTINGS_MENU_COUNT  8
 #define YESNO_MENU_COUNT     1
 #define PASSWORD_MENU_COUNT  1
 #define JOURNAL_MENU_COUNT	 1

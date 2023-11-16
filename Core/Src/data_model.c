@@ -492,7 +492,7 @@ void vSetLampRecource( uint8_t lamp_index, uint16_t recource)
 	}
 	else
 	{
-		if ( lamp_index <= LAMP_COUNT )
+		if ( lamp_index <= MAX_LAMP_COUNT )
 		{
 			int8SetRegister(LAMP_MAX_TIME_INDEX + lamp_index - 1 , (uint8_t)recource );
 			eEEPROMWr(LAMP_MAX_TIME_INDEX + lamp_index -1 ,&DATA_MODEL_REGISTER[LAMP_MAX_TIME_INDEX + lamp_index - 1 ], 1 );
@@ -502,6 +502,24 @@ void vSetLampRecource( uint8_t lamp_index, uint16_t recource)
 	return;
 }
 
+void vResetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
+{
+	if (cmd == mSAVE)
+	{
+	    JournalClear();
+	}
+	else
+	{
+		if  (GetEditFlag() == SCREEN_VIEW)
+		{
+			Data[0] = 0;
+		}
+		else
+			sprintf(Data,"Очистить?" );
+	}
+
+
+}
 
 void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
@@ -932,9 +950,22 @@ void InitDataModel()
 			DATA_MODEL_REGISTER[WWAR_ON] 	=  210;
 			DATA_MODEL_REGISTER[VHIGH] 		=  250;
 			DATA_MODEL_REGISTER[VHIGH_ON] 	=  240;
+			DATA_MODEL_REGISTER[DAY] 	= 0;
+			DATA_MODEL_REGISTER[MOUNTH] = 0;
+			DATA_MODEL_REGISTER[YEAR] 	= 0;
 			eEEPROMWr(VALID_CODE_ADDRES,DATA_MODEL_REGISTER,EEPROM_REGISER_COUNT);
 			memset(DATA_MODEL_REGISTER,0,EEPROM_REGISER_COUNT);
 			eEEPROMRd(0x00 ,DATA_MODEL_REGISTER , EEPROM_REGISER_COUNT);
+		}
+		else
+		{
+			static RTC_DateTypeDef date;
+			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+			date.Date =+ DATA_MODEL_REGISTER[DAY];
+			date.Month = DATA_MODEL_REGISTER[MOUNTH];
+			date.Year = DATA_MODEL_REGISTER[YEAR];
+			HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
 		}
 	}
 }
@@ -944,9 +975,18 @@ void InitDataModel()
  */
 void vLAMWorkHoursWrite()
 {
+
+	RTC_DateTypeDef date;
+	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+	DATA_MODEL_REGISTER[DAY] = date.Date;
+	DATA_MODEL_REGISTER[MOUNTH]= date.Month;
+	DATA_MODEL_REGISTER[YEAR]=date.Year;
+	eEEPROMWr(DAY,&DATA_MODEL_REGISTER[DAY],3);
 	eEEPROMWr(LAMP_WORK_HOURS_INDEX,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],LAMP_WORK_HOURS_SIZE );
 }
-
+/*
+ *   Получить запись из журнала
+ */
 void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateTypeDef * date)
 {
   uint16_t total     =  int16GetRegister( RECORD_COUNT );
@@ -985,7 +1025,9 @@ void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateT
 	  *flag = 0;
   }
 }
-
+/*
+ * Добавить запись в журнал
+ */
 void vADDRecord( uint8_t flag)
 {
 
@@ -1012,5 +1054,15 @@ void vADDRecord( uint8_t flag)
     eEEPROMWr(RECORD_COUNT , &DATA_MODEL_REGISTER[RECORD_COUNT], 4 );
 
 }
+/*
+ * Очистить журнал
+ */
+void JournalClear()
+{
+	 int16SetRegister(RECORD_INDEX, 0);
+	 int16SetRegister(RECORD_COUNT, 0);
+	 eEEPROMWr(RECORD_COUNT , &DATA_MODEL_REGISTER[RECORD_COUNT], 4 );
+}
+
 
 

@@ -43,14 +43,7 @@ void StartControlTask(void *argument)
 			   state = CONTROLLER_INIT;
 		   }
 	   }
-	   if  ( ( xEventGroupGetBits( system_event ) & SYSTEM_RESTART ) && ( state == CONTROLLER_IDLE ) )
-	   {
-		  state = CONTROLLER_INIT;
-		  xEventGroupClearBits(system_event,  SYSTEM_STOP);
-		  xEventGroupClearBits(system_event,  SYSTEM_RESTART);
-		  xEventGroupSetBits(system_event, SYSTEM_REINIT);
-	   }
-	   else
+
 	   if ( ( xEventGroupGetBits( system_event ) & SYSTEM_IDLE ) && ( state != CONTROLLER_IDLE ) )
 	   {
 		   state = CONTROLLER_IDLE;
@@ -63,6 +56,7 @@ void StartControlTask(void *argument)
 		   state = CONTROLLER_IDLE;
 	   }
 	   int8SetRegisterBit( DEVICE_OUTPUT_REG, ALARM_OUT_FLAG,  int8GetRegister(DEVICE_ALARM_REG) & ERROR_LAM_FLAG );
+
 		switch (state)
 		{
 			case CONTROLLER_INIT:
@@ -75,8 +69,10 @@ void StartControlTask(void *argument)
 				xEventGroupSetBits(system_event,     KEYBOARD_START);
 				state = CONTROLLER_WORK;
 				control_type =  int8GetRegister(CONTROL_TYPE_REG );
+
 				break;
 			case CONTROLLER_WORK:
+				int8SetRegister(SCADA_CONTROL_REG, (uint8_t)usGetReg(SCADA_CONTROL_ADDR ));
 				if (WARNNING_MASK != int8GetRegister(DEVICE_ALARM_REG))
 				{
 					uint8_t mask = (( WARNNING_MASK ^ int8GetRegister(DEVICE_ALARM_REG) ) & int8GetRegister(DEVICE_ALARM_REG));
@@ -128,6 +124,16 @@ void StartControlTask(void *argument)
 				int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,0);
 				break;
 			case CONTROLLER_IDLE:
+				if  ( xEventGroupGetBits( system_event ) & SYSTEM_RESTART )
+				{
+					vLAMWorkHoursWrite();
+					state = CONTROLLER_INIT;
+					xEventGroupClearBits(system_event,  SYSTEM_STOP);
+					xEventGroupClearBits(system_event,  SYSTEM_RESTART);
+					xEventGroupClearBits(system_event,  SYSTEM_IDLE);
+					xEventGroupSetBits(system_event,    SYSTEM_REINIT);
+				}
+
 			default:
 				break;
 			/*case CONTROLLER_SHOTDOWN:

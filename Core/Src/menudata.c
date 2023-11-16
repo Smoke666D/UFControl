@@ -124,6 +124,11 @@ static xScreenObjet const xYesNoScreen[]=
 
 };
 
+static xScreenObjet const JournalClearScreen[] =
+{
+	{ 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Очистка журнала", 0U, 0U, NULL  },
+	{ LAST_OBJECT, 10U, LINE2, 2U,  EDIT_DATA,  0U,(void*)vResetJournal, 0 , CENTER_DATA },
+};
 
 
 static xScreenObjet const LampReSetRecourceScreen[] =
@@ -262,6 +267,7 @@ xScreenType  xSettingMenuScreens[SETTINGS_MENU_COUNT ]=
   {LampReSetRecourceScreen,   &xMainMenu, NULL    ,0,0,0,COMMAND_EDIT  },
   {TimeSetScreen,  			  &xMainMenu, NULL    ,0,0,3,MULTI_PARAMETR_EDIT  },
   {DateSetScreen,             &xMainMenu, NULL    ,0,0,3,MULTI_PARAMETR_EDIT   },
+  {JournalClearScreen,        &xMainMenu, NULL    ,0,0,0,COMMAND_EDIT  },
 
 };
 

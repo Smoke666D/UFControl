@@ -196,10 +196,22 @@ void xYesNoScreenKeyCallBack( xScreenSetObject* menu, char key )
 
 SCREEN_EDIT_STATUS edit_data_flag =SCREEN_VIEW;
 uint8_t multiedit = 0;
+uint8_t data_edited = 0;
+
+uint8_t GetEditFlag()
+{
+	return (edit_data_flag);
+}
+
 void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 {
 	uint8_t           index = menu->pCurrIndex;
 	xScreenSetObject* pMenu = menu;
+
+    if ( ( xEventGroupGetBits(system_event) & MB_EDIT ) != MB_EDIT )
+    {
+
+      xEventGroupSetBits(system_event,MENU_EDIT);
 	  switch ( key )
 	  {
 	    case KEY_UP:
@@ -264,28 +276,31 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 	               pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
 	               pCurrMenu->pCurrIndex = 0;
 	               menu->pHomeMenu[menu->pCurrIndex].DataIndex = 0;
-	               //pMenu     = pCurrMenu;
-	               xEventGroupSetBits(system_event,SYSTEM_RESTART);
+	               if (data_edited )
+	               {
+	            	   xEventGroupSetBits(system_event,SYSTEM_RESTART);
+	            	   data_edited   = 0;
+	               }
+	               xEventGroupClearBits(system_event, MENU_EDIT);
 	           }
 	       }
-	    	DataViewIndex =0;
+	       DataViewIndex =0;
 	       break;
 	   case KEY_ENTER:
 		    switch (edit_data_flag )
 		    {
 
 		          case SCREEN_VIEW:
-		        	  xEventGroupSetBits(system_event,SYSTEM_STOP);
-		        		  for (uint8_t  i=0U; i<MAX_SCREEN_OBJECT; i++ )
-		        		  {
-		        		  	   if ( (menu->pHomeMenu[index].pScreenCurObjets[i].xType == EDIT_DATA) ||
+		        	for (uint8_t  i=0U; i<MAX_SCREEN_OBJECT; i++ )
+		        	{
+		        		  if ( (menu->pHomeMenu[index].pScreenCurObjets[i].xType == EDIT_DATA) ||
 		        		  			  (menu->pHomeMenu[index].pScreenCurObjets[i].xType == MULTI_EDIT_DATA) )
-		        		  	   {
+		        		  {
 		        		  	       menu->pHomeMenu[index].pEitObject = (xScreenObjet*)&(menu->pHomeMenu[index].pScreenCurObjets[i]);
 		        		  	       break;
-		        		  	   }
-		        		  	   if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
 		        		  }
+		        		  if ( menu->pHomeMenu[index].pScreenCurObjets[i].last == LAST_OBJECT ) break;
+		           }
 		           if (menu->pHomeMenu[index].ScreenType == COMMAND_EDIT)
 		           {
 		        	   edit_data_flag  = PARAMENT_EDIT;
@@ -340,11 +355,25 @@ void xEditScreenCallBack ( xScreenSetObject* menu, char key )
 			pCurrMenu =  &xYesNoMenu;
 		    pCurrMenu->pHomeMenu[0].pUpScreenSet = menu;
 		    multiedit = 0;
-
+		    if (data_edited == 0)
+		    {
+		    	data_edited   = 1;
+		    	xEventGroupSetBits(system_event,SYSTEM_STOP);
+		    }
 		    break;
 	    default:
 	      break;
 	  }
+    }
+    else
+    {
+       if ( pMenu->pHomeMenu[index].pUpScreenSet != NULL )
+       {
+    	   pCurrMenu = menu->pHomeMenu[index].pUpScreenSet;
+    	   pCurrMenu->pCurrIndex = 0;
+    	   menu->pHomeMenu[menu->pCurrIndex].DataIndex = 0;
+       }
+    }
 	  return;
 }
 

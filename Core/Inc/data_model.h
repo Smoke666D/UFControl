@@ -12,7 +12,7 @@
 #include "menu.h"
 
 
-#define VALID_CODE      0x33
+#define VALID_CODE      0x44
 /* описание регистра в регисторвой модели*/
 #define VALID_CODE_ADDRES   0
 #define PASSWORD           ( VALID_CODE_ADDRES +1  )
@@ -31,7 +31,10 @@
 #define WWAR_ON				( WWAR +1)
 #define VHIGH			    ( WWAR_ON+1)
 #define VHIGH_ON		    ( VHIGH +1)
-#define LAMP_MAX_TIME_INDEX      ( VHIGH_ON +1 )
+#define DAY					( VHIGH_ON +1 )
+#define MOUNTH				( DAY +1 )
+#define YEAR				( MOUNTH + 1)
+#define LAMP_MAX_TIME_INDEX      ( YEAR +1 )
 #define LAMP_WORK_HOURS_INDEX   (LAMP_MAX_TIME_INDEX + 44 )
 	#define LAMP_WORK_HOURS_SIZE       (44*4)
 #define LAMP_RESURSE_INDEX     (LAMP_WORK_HOURS_INDEX + LAMP_WORK_HOURS_SIZE)
@@ -182,4 +185,6 @@ void vSetLampRecource( uint8_t lamp_index, uint16_t recource);
 void vADDRecord( uint8_t flag);
 void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateTypeDef * date);
 void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
+void JournalClear();
+void vResetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 #endif /* INC_DATA_MODEL_H_ */
