@@ -19,7 +19,7 @@ static uint8_t EditFlag = 0;
 static uint32_t EditDATA = 0;
 static uint16_t step = 1;
 uint8_t bytebuffer;
-
+extern RTC_HandleTypeDef hrtc;
 
 //static void vSetAllResLampMenu( DATA_COMMNAD_TYPE cmd, char* Data);
 static void vSetLampCount(DATA_COMMNAD_TYPE cmd, char* Data);
@@ -132,7 +132,9 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	 }
  }
 
-
+/*
+ * callback функция для пароля
+ */
 void vGetPassword( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
 
@@ -249,7 +251,6 @@ void vGetVoltForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 							  {
 								  int8SetRegister(VLOW_ON, (uint16_t)EditDATA +1 );
 								  eEEPROMWr(VLOW_ON ,&DATA_MODEL_REGISTER[VLOW_ON],1);
-
 							  }
 							  break;
 						case WWAR:
@@ -257,7 +258,6 @@ void vGetVoltForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 							 {
 								 int8SetRegister(WWAR_ON, (uint16_t)EditDATA +1 );
 								 eEEPROMWr(WWAR_ON ,&DATA_MODEL_REGISTER[WWAR_ON],1);
-
 							 }
 							 break;
 						case VHIGH:
@@ -265,7 +265,6 @@ void vGetVoltForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 							{
 									int8SetRegister(VHIGH_ON, (uint16_t)EditDATA - 1 );
 									eEEPROMWr(VHIGH_ON ,&DATA_MODEL_REGISTER[VHIGH_ON],1);
-
 							}
 							break;
 						default:
@@ -291,7 +290,6 @@ void vGetFBOSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
     	case 1:step = 100;break;
     	case 2:step = 10;break;
     	case 3:step = 1;break;
-
     }
 
 	switch (cmd)
@@ -322,8 +320,6 @@ void vGetFBOSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 				break;
 	}
 }
-
-
 
 
 
@@ -407,20 +403,34 @@ void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			sprintf(Data,"%u",int16GetRegister( RECORD_COUNT));
 			break;
 		case CUR_RECORD:
-			sprintf(Data,"%u",(max_index == 0) ? 0 : index +1);
+			if (int16GetRegister( RECORD_COUNT)!=0)
+			{
+				sprintf(Data,"N %u",(max_index == 0) ? 0 : index +1);
+			}
+			else
+				Data[0]=0;
 			break;
 		case ALARM_STATUS:
-			uint8_t i;
-			vGetRecord( index ,(uint8_t *)&flag,&time,&date );
-			for (i=0;i< VOLT_250;i++)
-			 {
+			if (int16GetRegister( RECORD_COUNT)!=0)
+			{
+				uint8_t i;
+				vGetRecord( index ,(uint8_t *)&flag,&time,&date );
+				for (i=0;i< VOLT_250;i++)
+				{
 				if (flag>>i & 0x1) break;
+				}
+				sprintf(Data,"%s",ErrorStrings[i+1]);
 			}
-			sprintf(Data,"%s",ErrorStrings[i+1]);
+			else
+				sprintf(Data,"%s","Нет записей!");
 			break;
 		case ALARM_TIME_STATUS:
+			if (int16GetRegister( RECORD_COUNT)!=0)
+			{
 			vGetRecord( index ,(uint8_t *)&flag,&time,&date );
 			sprintf(Data,"%02u:%02u:%02u  %02u.%02u.20%02u",time.Hours,time.Minutes,time.Seconds,date.Date,date.Month,date.Year);
+			}
+			else Data[0]=0;
 			break;
 		default:
 			break;
@@ -697,13 +707,13 @@ void vSetDateForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 				switch ( usGetDataViewIndex())
 				{
 					case 0:
-						if (++date.Date >= 31) date.Date = 0;
+						if (++date.Date > 31) date.Date = 0;
 						break;
 					case 1:
-						if (++date.Month >= 12) date.Month = 0;
+						if (++date.Month > 12) date.Month = 0;
 						break;
 					case 2:
-						if (++date.Year >= 99) date.Year = 0;
+						if (++date.Year > 99) date.Year = 0;
 						break;
 				}
 				break;
@@ -968,12 +978,11 @@ void InitDataModel()
 		else
 		{
 			static RTC_DateTypeDef date;
-			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
-			date.Date =+ DATA_MODEL_REGISTER[DAY];
-			date.Month = DATA_MODEL_REGISTER[MOUNTH];
-			date.Year = DATA_MODEL_REGISTER[YEAR];
-			HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
 
+			hrtc.DateToUpdate.Date = DATA_MODEL_REGISTER[DAY];
+			hrtc.DateToUpdate.Month = DATA_MODEL_REGISTER[MOUNTH];
+			hrtc.DateToUpdate.Year = DATA_MODEL_REGISTER[YEAR];
+			HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 		}
 	}
 }
@@ -983,14 +992,14 @@ void InitDataModel()
  */
 void vLAMWorkHoursWrite()
 {
-
 	RTC_DateTypeDef date;
 	HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
 	DATA_MODEL_REGISTER[DAY] = date.Date;
 	DATA_MODEL_REGISTER[MOUNTH]= date.Month;
-	DATA_MODEL_REGISTER[YEAR]=date.Year;
+	DATA_MODEL_REGISTER[YEAR] = date.Year;
 	eEEPROMWr(DAY,&DATA_MODEL_REGISTER[DAY],3);
 	eEEPROMWr(LAMP_WORK_HOURS_INDEX,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX],LAMP_WORK_HOURS_SIZE );
+	HAL_NVIC_SystemReset();
 }
 /*
  *   Получить запись из журнала

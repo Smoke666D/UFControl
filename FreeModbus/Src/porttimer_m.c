@@ -28,7 +28,7 @@
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 /* ----------------------- Variables ----------------------------------------*/
-static USHORT usT35TimeOut50us;
+//static USHORT usT35TimeOut50us;
 //static struct rt_timer timer;
 
 

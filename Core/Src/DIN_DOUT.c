@@ -432,6 +432,7 @@ void StartDIN_DOUT(void *argument)
 
 	uint16_t delay = 0;
 	uint8_t ac_ready = 0;
+	uint16_t start_delay = 0;
 	EventGroupHandle_t system_event = xGetSystemUpdateEvent();
 	vDINInit();
 	HAL_TIM_Base_Start(&htim8);
@@ -449,7 +450,7 @@ void StartDIN_DOUT(void *argument)
 		}
 		if ((ADC_1_Convert == 0) && (start_flag))
 		{
-			if (ac_ready == 0)
+			if ( (ac_ready == 0) &&  (++start_delay > 250) )
 			{
 				xEventGroupSetBits(system_event,AC_CONTROL_READY);
 				ac_ready = 1;

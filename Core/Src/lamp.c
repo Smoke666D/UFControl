@@ -78,14 +78,15 @@ void LAMPstart(void *argument)
 								uint32_t new_recource_data = int32GetData(LAMP_WORK_HOURS_INDEX + i*4)+1;
 								int32SetData (LAMP_WORK_HOURS_INDEX + i*4,  new_recource_data );   //Если флага ошибок нет, инкриментируем счетчик времени работы
 								float MAX = (float) int8GetRegister(LAMP_MAX_TIME_INDEX + i) * res_mul ;
-								uint8_t resource = 0;
+								uint16_t resource = 0;
 								if (MAX!=0)
 								{
-									resource = (uint8_t)  ((float)new_recource_data/36.0) /  MAX;
+									resource =   (((float)new_recource_data/36.0) /  MAX);
 
 								}
+								if (resource > 100) resource = 100;
 
-								int8SetRegister( LAMP_RESURSE_INDEX + i , resource);
+								int8SetRegister( LAMP_RESURSE_INDEX + i ,(uint8_t) resource);
 								if (resource >=97) remain_resourse_3++;
 								if (resource >=100) remain_resourse_0++;
 							}

@@ -87,13 +87,16 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 
 		   if (data == READ_RECORD)
 			{
-					vGetRecord(system_regs[ADDRESS_OFFSET],((uint8_t *)&system_regs[DATA_OFFSET]),&time,&date );
+			   	   if (system_regs[ADDRESS_OFFSET] > 0 )
+					{
+					vGetRecord(system_regs[ADDRESS_OFFSET]-1,((uint8_t *)&system_regs[DATA_OFFSET]),&time,&date );
 					system_regs[DATE_OFFSET] = date.Date;
 					system_regs[MOUNTH_OFFSET] = date.Month;
 					system_regs[YEAR_OFFSET] = date.Year;
 					system_regs[HOUR_OFFSET] = time.Hours;
 					system_regs[MINUTE_OFFSET] = time.Minutes;
 					system_regs[SECOND_OFFSET] = time.Seconds;
+					}
 			}
 			if ( ConfigEnable ==  CONFIG_ENABLE )
 			{

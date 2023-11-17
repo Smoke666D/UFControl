@@ -11,7 +11,7 @@
 #include "EEPROM.h"
 #include "menu.h"
 
-#define res_mul  1000
+#define res_mul  1//1000
 #define MAX_RESOURCE   13
 
 #define VALID_CODE      0x69

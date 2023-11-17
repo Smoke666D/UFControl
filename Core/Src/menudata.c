@@ -81,7 +81,7 @@ static xScreenObjet const LampErrorScreen[]  =
 
 static xScreenObjet const xJournalScreen[]=
 {
-	{ 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "N", 0U, 0U, NULL  },
+	//{ 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "N", 0U, 0U, NULL  },
 	{0U, 2U, LINE1, 1, DATA,  0U, (void*)vGetJournal, CUR_RECORD, LEFT_DATA  },
 	{ 0U, 19U, LINE1, 1, DATA,  0U, (void*)vGetJournal, ALARM_STATUS, RIGTH_DATA  },
 	{ LAST_OBJECT, 0U, LINE2, 1, DATA,  0U, (void*)vGetJournal, ALARM_TIME_STATUS, LEFT_DATA  },
