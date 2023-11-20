@@ -78,7 +78,12 @@ void StartControlTask(void *argument)
 					uint8_t mask = (( WARNNING_MASK ^ int8GetRegister(DEVICE_ALARM_REG) ) & int8GetRegister(DEVICE_ALARM_REG));
 					if (mask)
 					{
-						vADDRecord(mask);
+
+						for (uint8_t k = 0;k<8;k++)
+						{
+							if ((0x01<<k) & mask)
+							vADDRecord(mask & (0x01<<k) );
+						}
 					}
 					WARNNING_MASK = int8GetRegister(DEVICE_ALARM_REG);
 				}

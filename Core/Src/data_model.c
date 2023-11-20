@@ -42,7 +42,7 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
     uint8_t error_count = 0;
     int16_t index = usGetDataViewIndex();
     uint16_t error_reg = int8GetRegister(DEVICE_ALARM_REG);
-    for (uint8_t i=0;i< REMAIN_RESOURS_0;i++)
+    for (uint8_t i=0;i <= VOLT_250 ;i++)
     {
     	if (error_reg & (0x1<<i)) error_count++;
     }
@@ -384,7 +384,6 @@ void vGetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	}
 }
 
-
 void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 {
 	static RTC_TimeTypeDef time;
@@ -405,7 +404,7 @@ void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 		case CUR_RECORD:
 			if (int16GetRegister( RECORD_COUNT)!=0)
 			{
-				sprintf(Data,"N %u",(max_index == 0) ? 0 : index +1);
+				sprintf(Data,"N%u",(max_index == 0) ? 0 : index +1);
 			}
 			else
 				Data[0]=0;
@@ -568,8 +567,9 @@ void vResetRecourceLamp( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	}
 
 }
-
-
+/*
+ *
+ */
 void vResetLampRecource(uint8_t lamp_index)
 {
 	if (lamp_index == 0)
@@ -579,10 +579,10 @@ void vResetLampRecource(uint8_t lamp_index)
 	}
 	else
 	{
-		if (lamp_index <=  MAX_LAMP_COUNT)
+		if (lamp_index <= MAX_LAMP_COUNT)
 		{
-			*((uint32_t *)&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + (EditDATA - 1)*4]) = 0;
-			eEEPROMWr(LAMP_WORK_HOURS_INDEX + EditDATA - 1 ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + (EditDATA - 1)*4],4);
+			*((uint32_t *)&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + (lamp_index- 1)*4]) = 0;
+			eEEPROMWr(LAMP_WORK_HOURS_INDEX + lamp_index - 1 ,&DATA_MODEL_REGISTER[LAMP_WORK_HOURS_INDEX + (lamp_index - 1)*4],4);
 		}
 	}
 	return;

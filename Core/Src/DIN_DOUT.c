@@ -95,7 +95,6 @@ static uint8_t RegisterDATALoad()
 		case 1:
 			PL_SET();
 			PL_STATE =2;
-
 			break;
 		case 2:
 			HAL_SPI_Receive_DMA(&hspi2,pDATA,6U);
@@ -429,7 +428,7 @@ void StartDIN_DOUT(void *argument)
 	int16_t iMax =0;
     uint16_t old= 0;
 	uint16_t DF1;
-
+    uint16_t power_on_dealy = 0;
 	uint16_t delay = 0;
 	uint8_t ac_ready = 0;
 	uint16_t start_delay = 0;
@@ -496,10 +495,27 @@ void StartDIN_DOUT(void *argument)
 			}
 			if   (RegisterDATALoad() == 1)
 			{
-				uint32_t bdata = data[5] | data[4]<<8 | (data[3] & 0x3F)<<16;
-				int32SetData(LAM_ERROR_REG_LSB, bdata & 0x003FFFFF);
-				bdata = data[3]>>6 | data[1]<<10 | (data[0] & 0x0F)<<18 | data[2] <<2;
-				int32SetData(LAM_ERROR_REG_MSB, bdata & 0x003FFFFF);
+				/*
+				 * Для исключения ложны срабатываний данные обновляем только через 5 с. после включения ламп
+				 */
+				uint8_t out_on = int8GetRegister(DEVICE_OUTPUT_REG) & (0x01<<WORK_OUT_FLAG);
+				if (out_on )
+				{
+					if (++power_on_dealy> 60) power_on_dealy = 130;
+					if (power_on_dealy  >= 60 )
+					{
+						uint32_t bdata = data[5] | data[4]<<8 | (data[3] & 0x3F)<<16;
+						int32SetData(LAM_ERROR_REG_LSB, bdata & 0x003FFFFF);
+						bdata = data[3]>>6 | data[1]<<10 | (data[0] & 0x0F)<<18 | data[2] <<2;
+						int32SetData(LAM_ERROR_REG_MSB, bdata & 0x003FFFFF);
+					}
+				}
+				else
+				{
+					power_on_dealy =0;
+					int32SetData(LAM_ERROR_REG_LSB, 0);
+					int32SetData(LAM_ERROR_REG_MSB, 0);
+				}
 				if ( init_state == 0 )
 				{
 					init_state = 1;

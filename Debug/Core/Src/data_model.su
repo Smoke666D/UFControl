@@ -5,11 +5,11 @@
 ../Core/Src/data_model.c:282:6:vGetFBOSizeForMenu	24	static
 ../Core/Src/data_model.c:326:6:vGetRecourceEditForMenu	24	static
 ../Core/Src/data_model.c:354:6:vGetRecourceForMenu	24	static
-../Core/Src/data_model.c:388:6:vGetJournal	48	static
-../Core/Src/data_model.c:442:6:vSetRecourceForMenu	24	static
-../Core/Src/data_model.c:497:6:vSetLampRecource	24	static
-../Core/Src/data_model.c:519:6:vResetJournal	16	static
-../Core/Src/data_model.c:538:6:vResetRecourceLamp	24	static
+../Core/Src/data_model.c:387:6:vGetJournal	48	static
+../Core/Src/data_model.c:441:6:vSetRecourceForMenu	24	static
+../Core/Src/data_model.c:496:6:vSetLampRecource	24	static
+../Core/Src/data_model.c:518:6:vResetJournal	16	static
+../Core/Src/data_model.c:537:6:vResetRecourceLamp	24	static
 ../Core/Src/data_model.c:573:6:vResetLampRecource	16	static
 ../Core/Src/data_model.c:591:7:vEditLampCount	16	static
 ../Core/Src/data_model.c:618:13:vSetLampCount	16	static

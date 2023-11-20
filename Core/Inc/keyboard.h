@@ -30,7 +30,7 @@
 #define KEY_PEREOD         20U
 #define SWITCHONDELAY      2U
 #define DefaultDelay       50U
-#define DefaultRepeatRate  40U
+#define DefaultRepeatRate  10U
 #define PressDelay         100U
 #define BRAKECODE          0x40U
 #define MAKECODE           0x80U
