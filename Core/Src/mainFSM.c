@@ -181,6 +181,14 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 				HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
 			}
 			break;
+		case  SET_CONTRST_DATA:
+			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 100) )
+			{
+				uint8_t d = data;
+				int8SetRegister(CONTRAST_REG,data);
+				eEEPROMWr(CONTRAST_REG, &d,1);
+		    }
+			break;
 		default:
 			break;
 	}

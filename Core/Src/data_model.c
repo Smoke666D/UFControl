@@ -874,6 +874,39 @@ void vGetDataForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
    }
 }
 
+
+void vSetContrMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
+{
+	uint8_t data =0;
+		switch (cmd)
+		{
+		  case mREAD:
+			  data = (EditFlag == 0) ? int8GetRegister(CONTRAST_REG ) : (uint8_t)EditDATA;
+			  sprintf(Data,"%u", data);
+			  break;
+		  case mINC:
+			  if (EditFlag == 0) EditDATA = int8GetRegister(CONTRAST_REG );
+			  EditFlag = 1;
+
+			  if ( ++EditDATA >= 100 )  EditDATA= 1;
+			 break;
+		  case mDEC:
+			  if (EditFlag == 0) EditDATA = int8GetRegister(CONTRAST_REG );
+			  EditFlag = 1;
+			  if ( --EditDATA == 0)  EditDATA= 1;
+			  break;
+		  case mSAVE:
+			  EditFlag = 0;
+			  int8SetRegister(CONTRAST_REG, (uint8_t)EditDATA );
+			  data = (uint8_t)EditDATA;
+			  eEEPROMWr(CONTRAST_REG, &data,1);
+		  case mESC:
+			  EditDATA = 0;
+			  EditFlag = 0;
+			  break;
+		}
+}
+
  void vGetMbTypeMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
 {
 	uint8_t data =0;
@@ -967,6 +1000,7 @@ void InitDataModel()
 			DATA_MODEL_REGISTER[DAY] 	= 0;
 			DATA_MODEL_REGISTER[MOUNTH] = 0;
 			DATA_MODEL_REGISTER[YEAR] 	= 0;
+			DATA_MODEL_REGISTER[CONTRAST_REG] = 35;
 			for (int i=0;i<MAX_LAMP_COUNT;i++)
 			{
 				DATA_MODEL_REGISTER[i+LAMP_MAX_TIME_INDEX] = 8;

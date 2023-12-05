@@ -176,8 +176,11 @@ static xScreenObjet const MBScreen[] =
    { LAST_OBJECT, 10, LINE2, 2U, EDIT_DATA,  NULL, (void*)vGetMbTypeMenu, 0 , CENTER_DATA  },
 };
 
-
-
+static xScreenObjet const ContrastScreen[]=
+{
+	{ 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Контрастность", 0U, 0U , NULL },
+	{ LAST_OBJECT, 10, LINE2, 2U, EDIT_DATA,  NULL, (void*)vSetContrMenu, 0 , CENTER_DATA  },
+};
 static xScreenObjet const LampCountScreen[] =
 {
    { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Количество ламп", 0U, 0U , NULL },
@@ -268,6 +271,7 @@ xScreenType  xSettingMenuScreens[SETTINGS_MENU_COUNT ]=
   {TimeSetScreen,  			  &xMainMenu, NULL    ,0,0,3,MULTI_PARAMETR_EDIT  },
   {DateSetScreen,             &xMainMenu, NULL    ,0,0,3,MULTI_PARAMETR_EDIT   },
   {JournalClearScreen,        &xMainMenu, NULL    ,0,0,0,COMMAND_EDIT  },
+  {ContrastScreen,	          &xMainMenu, NULL    ,0,0,0,ONE_PARAMETR_EDIT  },
 
 };
 

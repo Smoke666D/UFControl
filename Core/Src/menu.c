@@ -703,7 +703,6 @@ void StartMenuTask(void *argument)
 	    		  }
 
 	    	  }
-
 	    	  pCurrMenu->pFunc( pCurrMenu, key );
 	      }
 	  }

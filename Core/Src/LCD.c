@@ -15,6 +15,7 @@ static uint8_t LCD_OUT_BUFFER[ MAX_CHAR  ];
 
 
 extern TIM_HandleTypeDef htim7;
+extern DAC_HandleTypeDef hdac;
 static   EventGroupHandle_t lcdFlags;
 static   StaticEventGroup_t lcdFlagCreatedEventGroup;
 
@@ -234,6 +235,7 @@ void LCD_Task(void *argument)
 	LCD_LED_ON();
 	while(1)
 	{
+		//void SetContrast( );
 		vTaskDelay(DISPALY_REDRAW_TIME);
 		if (xEventGroupGetBits(system_event) & LCD_OFF)
 		{
@@ -246,4 +248,14 @@ void LCD_Task(void *argument)
 			vRedrawLCD();
 		}
 	}
+}
+
+void SetContrast( )
+{
+   uint8_t contrast = int8GetRegister(CONTRAST_REG);
+  if (contrast > 100)
+	  contrast = 100;
+  float coof = (float)contrast/100.0 * 4095;
+  HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R,(uint16_t)coof );
+  HAL_DAC_Start(&hdac,DAC_CHANNEL_1);
 }

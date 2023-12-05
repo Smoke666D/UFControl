@@ -95,14 +95,12 @@ EventGroupHandle_t xGetSystemUpdateEvent();
 #define local_GPIO_Port GPIOC
 #define remote_Pin GPIO_PIN_3
 #define remote_GPIO_Port GPIOC
-#define KL1_Pin GPIO_PIN_4
+#define KL1_Pin GPIO_PIN_5
 #define KL1_GPIO_Port GPIOA
-#define KL2_Pin GPIO_PIN_5
+#define KL2_Pin GPIO_PIN_6
 #define KL2_GPIO_Port GPIOA
-#define KL3_Pin GPIO_PIN_6
+#define KL3_Pin GPIO_PIN_7
 #define KL3_GPIO_Port GPIOA
-#define KL4_Pin GPIO_PIN_7
-#define KL4_GPIO_Port GPIOA
 #define IND_E_Pin GPIO_PIN_4
 #define IND_E_GPIO_Port GPIOC
 #define Ind_R_nW_Pin GPIO_PIN_5
@@ -119,6 +117,8 @@ EventGroupHandle_t xGetSystemUpdateEvent();
 #define Ind_LED_GPIO_Port GPIOB
 #define LampNPL_Pin GPIO_PIN_12
 #define LampNPL_GPIO_Port GPIOB
+#define KL4_Pin GPIO_PIN_15
+#define KL4_GPIO_Port GPIOB
 #define POW_OUT1_Pin GPIO_PIN_6
 #define POW_OUT1_GPIO_Port GPIOC
 #define POW_OUT2_Pin GPIO_PIN_7

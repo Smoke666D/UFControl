@@ -34,7 +34,7 @@ typedef StaticEventGroup_t osStaticEventGroupDef_t;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define MKL_2
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,6 +47,8 @@ ADC_HandleTypeDef hadc1;
 ADC_HandleTypeDef hadc3;
 DMA_HandleTypeDef hdma_adc1;
 DMA_HandleTypeDef hdma_adc3;
+
+DAC_HandleTypeDef hdac;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -226,6 +228,7 @@ static void MX_TIM6_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_IWDG_Init(void);
+static void MX_DAC_Init(void);
 void StartDefaultTask(void *argument);
 extern void LCD_Task(void *argument);
 extern void StartDIN_DOUT(void *argument);
@@ -236,8 +239,6 @@ extern void StartControlTask(void *argument);
 extern void StartUARTTask(void *argument);
 extern void StartMenuTask(void *argument);
 
-
-#define WDT_ENABEL 1
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -321,8 +322,9 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM2_Init();
   MX_TIM8_Init();
-#ifdef  WDT_ENABEL
   MX_IWDG_Init();
+#ifdef MKL_2
+  MX_DAC_Init();
 #endif
   /* USER CODE BEGIN 2 */
   eEEPROM(&hi2c1);
@@ -574,6 +576,46 @@ static void MX_ADC3_Init(void)
 }
 
 /**
+  * @brief DAC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_DAC_Init(void)
+{
+
+  /* USER CODE BEGIN DAC_Init 0 */
+
+  /* USER CODE END DAC_Init 0 */
+
+  DAC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN DAC_Init 1 */
+
+  /* USER CODE END DAC_Init 1 */
+
+  /** DAC Initialization
+  */
+  hdac.Instance = DAC;
+  if (HAL_DAC_Init(&hdac) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** DAC channel OUT1 config
+  */
+  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
+  sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
+  if (HAL_DAC_ConfigChannel(&hdac, &sConfig, DAC_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN DAC_Init 2 */
+
+  /* USER CODE END DAC_Init 2 */
+
+}
+
+/**
   * @brief I2C1 Initialization Function
   * @param None
   * @retval None
@@ -647,7 +689,8 @@ static void MX_RTC_Init(void)
 
   /* USER CODE END RTC_Init 0 */
 
-
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef DateToUpdate = {0};
 
   /* USER CODE BEGIN RTC_Init 1 */
 
@@ -669,7 +712,23 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date
   */
+  sTime.Hours = 0x0;
+  sTime.Minutes = 0x0;
+  sTime.Seconds = 0x0;
 
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  DateToUpdate.WeekDay = RTC_WEEKDAY_MONDAY;
+  DateToUpdate.Month = RTC_MONTH_JANUARY;
+  DateToUpdate.Date = 0x1;
+  DateToUpdate.Year = 0x0;
+
+  if (HAL_RTC_SetDate(&hrtc, &DateToUpdate, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
@@ -984,8 +1043,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : KL1_Pin KL2_Pin KL3_Pin KL4_Pin */
-  GPIO_InitStruct.Pin = KL1_Pin|KL2_Pin|KL3_Pin|KL4_Pin;
+  /*Configure GPIO pins : KL1_Pin KL2_Pin KL3_Pin */
+  GPIO_InitStruct.Pin = KL1_Pin|KL2_Pin|KL3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -1000,6 +1059,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : KL4_Pin */
+  GPIO_InitStruct.Pin = KL4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(KL4_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : EN485_Pin */
   GPIO_InitStruct.Pin = EN485_Pin;

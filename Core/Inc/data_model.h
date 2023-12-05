@@ -14,7 +14,7 @@
 #define res_mul  1000
 #define MAX_RESOURCE   13
 
-#define VALID_CODE      0x69
+#define VALID_CODE      0x77
 /* описание регистра в регисторвой модели*/
 #define VALID_CODE_ADDRES   0
 #define PASSWORD           ( VALID_CODE_ADDRES +1  )
@@ -44,9 +44,9 @@
 #define LAM_ERROR_REG_MSB (LAM_ERROR_REG_LSB +4)
 //8 битный регист аварий
 #define SCADA_CONTROL_REG    (LAM_ERROR_REG_MSB  + 4)
+#define CONTRAST_REG		(SCADA_CONTROL_REG  + 1)
 
-
-#define DEVICE_ALARM_REG      (SCADA_CONTROL_REG  + 1)
+#define DEVICE_ALARM_REG      (CONTRAST_REG  + 1)
 
     #define DOOR_ALARM            0
     #define FIRE_FLAG             1
@@ -189,4 +189,5 @@ void vGetRecord( uint16_t addr,uint8_t * flag, RTC_TimeTypeDef * time, RTC_DateT
 void vGetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
 void JournalClear();
 void vResetJournal( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID );
+void vSetContrMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID);
 #endif /* INC_DATA_MODEL_H_ */

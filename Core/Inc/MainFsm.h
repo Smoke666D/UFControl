@@ -40,6 +40,7 @@
 #define SET_MINUTE_OFFSET           15
 #define SET_SECOND_OFFSET			16
 #define SET_LAM_DATA_OFFSET         17
+#define SET_CONTR_OFFSET            18
 
 
 #define SCADA_CONTROL_ADDR  (0)
@@ -59,7 +60,8 @@
 #define SET_HOUR_REG        ( SET_YEAR_REG + 1 )
 #define SET_MIN_REG         ( SET_HOUR_REG + 1 )
 #define SET_SEC_REG			( SET_MIN_REG + 1 )
-#define SET_LAMP_DATA       ( SET_SEC+REG + 1 )
+#define SET_LAMP_DATA       ( SET_SEC_REG + 1 )
+#define SET_CONTRST_DATA    ( SET_LAMP_DATA + 1)
 
 #define RESET_RESOURSE 		0x5501
 #define RESET_RESOIRSE_ALL  0x5500
