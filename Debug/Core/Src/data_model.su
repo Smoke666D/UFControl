@@ -25,10 +25,10 @@
 ../Core/Src/data_model.c:817:6:int8SetRegister	16	static
 ../Core/Src/data_model.c:824:6:vGetDataForMenu	48	static
 ../Core/Src/data_model.c:878:6:vSetContrMenu	24	static
-../Core/Src/data_model.c:910:7:vGetMbTypeMenu	24	static
-../Core/Src/data_model.c:942:6:vGetControlTypeMenu	24	static
-../Core/Src/data_model.c:977:6:InitDataModel	16	static
-../Core/Src/data_model.c:1027:6:vLAMWorkHoursWrite	16	static
-../Core/Src/data_model.c:1041:6:vGetRecord	344	static
-../Core/Src/data_model.c:1082:6:vADDRecord	40	static
-../Core/Src/data_model.c:1111:6:JournalClear	8	static
+../Core/Src/data_model.c:912:7:vGetMbTypeMenu	24	static
+../Core/Src/data_model.c:944:6:vGetControlTypeMenu	24	static
+../Core/Src/data_model.c:979:6:InitDataModel	16	static
+../Core/Src/data_model.c:1029:6:vLAMWorkHoursWrite	16	static
+../Core/Src/data_model.c:1043:6:vGetRecord	344	static
+../Core/Src/data_model.c:1084:6:vADDRecord	40	static
+../Core/Src/data_model.c:1113:6:JournalClear	8	static

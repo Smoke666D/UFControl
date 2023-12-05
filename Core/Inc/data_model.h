@@ -14,7 +14,7 @@
 #define res_mul  1000
 #define MAX_RESOURCE   13
 
-#define VALID_CODE      0x77
+#define VALID_CODE      0x34
 /* описание регистра в регисторвой модели*/
 #define VALID_CODE_ADDRES   0
 #define PASSWORD           ( VALID_CODE_ADDRES +1  )

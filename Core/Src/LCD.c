@@ -235,7 +235,7 @@ void LCD_Task(void *argument)
 	LCD_LED_ON();
 	while(1)
 	{
-		//void SetContrast( );
+		 SetContrast( );
 		vTaskDelay(DISPALY_REDRAW_TIME);
 		if (xEventGroupGetBits(system_event) & LCD_OFF)
 		{
@@ -253,9 +253,9 @@ void LCD_Task(void *argument)
 void SetContrast( )
 {
    uint8_t contrast = int8GetRegister(CONTRAST_REG);
-  if (contrast > 100)
-	  contrast = 100;
-  float coof = (float)contrast/100.0 * 4095;
+  if (contrast > 10)
+	  contrast = 10;
+  float coof = (float)(10-contrast)*5/100.0 * 4095;
   HAL_DAC_SetValue(&hdac,DAC_CHANNEL_1,DAC_ALIGN_12B_R,(uint16_t)coof );
   HAL_DAC_Start(&hdac,DAC_CHANNEL_1);
 }

@@ -102,19 +102,22 @@ void StartControlTask(void *argument)
 						int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,1 );
 						break;
 					}
-					if (status  & ( 0x01<<REMOTE_FLAG ))
+					else
 					{
-						int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,0);
-						if (control_type == SCADA_TYPE )
+						if (status  & ( 0x01<<REMOTE_FLAG ))
 						{
-							int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, int8GetRegister(SCADA_CONTROL_REG) );
+							int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,0);
+							if (control_type == SCADA_TYPE )
+							{
+								int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, int8GetRegister(SCADA_CONTROL_REG) );
 
+							}
+							else
+							{
+								int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, (status  & ( 0x01<< REMOTE_ACT_FLAG)) );
+							}
+							break;
 						}
-						else
-						{
-							int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, (status  & ( 0x01<< REMOTE_ACT_FLAG)) );
-						}
-						break;
 					}
 					int8SetRegisterBit(DEVICE_OUTPUT_REG,WORK_OUT_FLAG, 0 );
 					int8SetRegisterBit(DEVICE_OUTPUT_REG,LOCAL_OUT_FLAG,0);

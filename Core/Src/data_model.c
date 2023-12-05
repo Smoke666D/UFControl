@@ -888,12 +888,14 @@ void vSetContrMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID)
 			  if (EditFlag == 0) EditDATA = int8GetRegister(CONTRAST_REG );
 			  EditFlag = 1;
 
-			  if ( ++EditDATA >= 100 )  EditDATA= 1;
+			  if ( ++EditDATA > 10 )  EditDATA= 1;
+			  int8SetRegister(CONTRAST_REG, (uint8_t)EditDATA );
 			 break;
 		  case mDEC:
 			  if (EditFlag == 0) EditDATA = int8GetRegister(CONTRAST_REG );
 			  EditFlag = 1;
 			  if ( --EditDATA == 0)  EditDATA= 1;
+			  int8SetRegister(CONTRAST_REG, (uint8_t)EditDATA );
 			  break;
 		  case mSAVE:
 			  EditFlag = 0;
@@ -997,10 +999,10 @@ void InitDataModel()
 			DATA_MODEL_REGISTER[WWAR_ON] 	=  210;
 			DATA_MODEL_REGISTER[VHIGH] 		=  250;
 			DATA_MODEL_REGISTER[VHIGH_ON] 	=  240;
-			DATA_MODEL_REGISTER[DAY] 	= 0;
-			DATA_MODEL_REGISTER[MOUNTH] = 0;
-			DATA_MODEL_REGISTER[YEAR] 	= 0;
-			DATA_MODEL_REGISTER[CONTRAST_REG] = 35;
+			DATA_MODEL_REGISTER[DAY] 	= 1;
+			DATA_MODEL_REGISTER[MOUNTH] = 12;
+			DATA_MODEL_REGISTER[YEAR] 	= 23;
+			DATA_MODEL_REGISTER[CONTRAST_REG] = 7;
 			for (int i=0;i<MAX_LAMP_COUNT;i++)
 			{
 				DATA_MODEL_REGISTER[i+LAMP_MAX_TIME_INDEX] = 8;

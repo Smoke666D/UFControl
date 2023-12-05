@@ -182,7 +182,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 			}
 			break;
 		case  SET_CONTRST_DATA:
-			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 100) )
+			if ( ( ConfigEnable ==  CONFIG_ENABLE ) && (data <= 10) )
 			{
 				uint8_t d = data;
 				int8SetRegister(CONTRAST_REG,data);
