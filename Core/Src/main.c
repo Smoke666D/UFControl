@@ -35,6 +35,7 @@ typedef StaticEventGroup_t osStaticEventGroupDef_t;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define MKL_2
+#define  WDT_ENABEL
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/

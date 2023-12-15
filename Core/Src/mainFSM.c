@@ -114,7 +114,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 						case SET_RESOURCE:
 							if ( ( system_regs[ ADDRESS_OFFSET ] > 0) && ( system_regs[ ADDRESS_OFFSET ] <= MAX_LAMP_COUNT ) )
 							{
-								if ((system_regs[SET_LAM_DATA_OFFSET ] > 0 ) && (system_regs[SET_LAM_DATA_OFFSET ] <= MAX_RESOURCE))
+								if ((system_regs[SET_LAM_DATA_OFFSET ] > 0 ) && (system_regs[SET_LAM_DATA_OFFSET ] <= MAX_RESOURCE*res_mul))
 								{
 									vSetLampRecource( (uint8_t)system_regs[ADDRESS_OFFSET] , system_regs[SET_LAM_DATA_OFFSET ]/res_mul );
 								}
