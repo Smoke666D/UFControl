@@ -156,14 +156,13 @@ void vRedrawLCD()
 {
     uint8_t ddd[20];
 
-
 	memcpy(ddd,LCD_BUFFER,LED_STRING_LEN);
 	for (uint8_t i = 0;i < LED_STRING_LEN;i++)
 	{
 		//if (ddd[i]!=LCD_OUT_BUFFER[i])
 		{
 
-			LCD_SendCommand(0x80 |  i);
+			//LCD_SendCommand(0x80 |  i);
 			if (i==0)
 			{
 				LCD_SendCommand(LCD_RETURN_HOME);
