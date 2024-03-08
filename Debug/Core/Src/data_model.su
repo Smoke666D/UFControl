@@ -28,7 +28,7 @@
 ../Core/Src/data_model.c:912:7:vGetMbTypeMenu	24	static
 ../Core/Src/data_model.c:944:6:vGetControlTypeMenu	24	static
 ../Core/Src/data_model.c:979:6:InitDataModel	16	static
-../Core/Src/data_model.c:1029:6:vLAMWorkHoursWrite	16	static
-../Core/Src/data_model.c:1043:6:vGetRecord	344	static
-../Core/Src/data_model.c:1084:6:vADDRecord	40	static
-../Core/Src/data_model.c:1113:6:JournalClear	8	static
+../Core/Src/data_model.c:1028:6:vLAMWorkHoursWrite	16	static
+../Core/Src/data_model.c:1042:6:vGetRecord	344	static
+../Core/Src/data_model.c:1083:6:vADDRecord	40	static
+../Core/Src/data_model.c:1112:6:JournalClear	8	static

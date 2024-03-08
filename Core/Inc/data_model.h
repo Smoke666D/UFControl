@@ -11,10 +11,10 @@
 #include "EEPROM.h"
 #include "menu.h"
 
-#define res_mul  1000
+#define res_mul  1//1000
 #define MAX_RESOURCE   13
 
-#define VALID_CODE      0x34
+#define VALID_CODE      0x55
 /* описание регистра в регисторвой модели*/
 #define VALID_CODE_ADDRES   0
 #define PASSWORD           ( VALID_CODE_ADDRES +1  )
@@ -40,7 +40,9 @@
 #define LAMP_WORK_HOURS_INDEX   (LAMP_MAX_TIME_INDEX + 44 )
 	#define LAMP_WORK_HOURS_SIZE       (44*4)
 #define LAMP_RESURSE_INDEX     (LAMP_WORK_HOURS_INDEX + LAMP_WORK_HOURS_SIZE)
-#define LAM_ERROR_REG_LSB (LAMP_RESURSE_INDEX + 44)
+#define LAMP_RESURCE_SIZE      ( 44 * 2 )
+
+#define LAM_ERROR_REG_LSB (LAMP_RESURSE_INDEX +  LAMP_RESURCE_SIZE  )
 #define LAM_ERROR_REG_MSB (LAM_ERROR_REG_LSB +4)
 //8 битный регист аварий
 #define SCADA_CONTROL_REG    (LAM_ERROR_REG_MSB  + 4)

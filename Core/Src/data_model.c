@@ -341,7 +341,7 @@ void vGetRecourceEditForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 			vSetLampCount(cmd,Data);
 			break;
 		case LAMP_RES_PROCENT_DATA_ID:
-			sprintf(Data,"%u %%", int8GetRegister( LAMP_RESURSE_INDEX  + index) );
+			sprintf(Data,"%u ч", int16GetRegister( LAMP_RESURSE_INDEX  + index*2) );
 		default:
 			break;
 	}
@@ -377,7 +377,7 @@ void vGetRecourceForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 
 			break;
 		case LAMP_RES_PROCENT_DATA_ID:
-			sprintf(Data,"%u %%", int8GetRegister( LAMP_RESURSE_INDEX  + index) );
+			sprintf(Data,"%u ч", (uint16_t)int16GetRegister( LAMP_RESURSE_INDEX  + index*2) );
 
 		default:
 			break;
@@ -1014,7 +1014,6 @@ void InitDataModel()
 		else
 		{
 			static RTC_DateTypeDef date;
-
 			hrtc.DateToUpdate.Date = DATA_MODEL_REGISTER[DAY];
 			hrtc.DateToUpdate.Month = DATA_MODEL_REGISTER[MOUNTH];
 			hrtc.DateToUpdate.Year = DATA_MODEL_REGISTER[YEAR];

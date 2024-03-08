@@ -35,7 +35,7 @@ typedef StaticEventGroup_t osStaticEventGroupDef_t;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define MKL_2
-#define  WDT_ENABEL
+//#define  WDT_ENABEL
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -323,7 +323,9 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM2_Init();
   MX_TIM8_Init();
+#ifdef  WDT_ENABEL
   MX_IWDG_Init();
+#endif
   MX_DAC_Init();
   /* USER CODE BEGIN 2 */
   eEEPROM(&hi2c1);
@@ -711,7 +713,7 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date
   */
-  sTime.Hours = 0x0;
+  /*sTime.Hours = 0x0;
   sTime.Minutes = 0x0;
   sTime.Seconds = 0x0;
 
@@ -727,7 +729,7 @@ static void MX_RTC_Init(void)
   if (HAL_RTC_SetDate(&hrtc, &DateToUpdate, RTC_FORMAT_BCD) != HAL_OK)
   {
     Error_Handler();
-  }
+  }*/
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */

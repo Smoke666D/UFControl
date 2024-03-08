@@ -46,7 +46,7 @@ uint16_t usGetRegInput( uint16_t reg_addr)
 		case 108: usRes = 0x5434; break;
 		default:
 			if ((reg_addr >=9) && (reg_addr <53)) usRes = int8GetRegister( LAMP_MAX_TIME_INDEX + reg_addr-9)*res_mul;
-			if ((reg_addr>= 53) && (reg_addr< 97))   usRes = int8GetRegister( LAMP_RESURSE_INDEX + reg_addr-53);
+			if ((reg_addr>= 53) && (reg_addr< 97))   usRes = int16GetRegister( LAMP_RESURSE_INDEX + ( reg_addr-53 )*2);
 			break;
 	}
 

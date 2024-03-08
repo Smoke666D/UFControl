@@ -234,7 +234,7 @@ void LCD_Task(void *argument)
 	LCD_LED_ON();
 	while(1)
 	{
-		 SetContrast( );
+		SetContrast( );
 		vTaskDelay(DISPALY_REDRAW_TIME);
 		if (xEventGroupGetBits(system_event) & LCD_OFF)
 		{

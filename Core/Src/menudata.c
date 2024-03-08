@@ -89,7 +89,7 @@ static xScreenObjet const xJournalScreen[]=
 
 static xScreenObjet const LampErrorMenuScreen[]=
 {
-  { 0, 0U		   , LINE1, 0U, TEXT_STRING,  " Ламп. Ошибок", 0U, 0U, NULL  },
+  { 0, 0U		   , LINE1, 0U, TEXT_STRING,  "Ошибки ламп", 0U, 0U, NULL  },
   { 0 , 16U, LINE1, 2U, DATA,  0U, (void*)vGetLapmErrorForMenu,  SCREEN_INDEX_ID, RIGTH_DATA  },
   { 0U, 17U, LINE1, 0U, TEXT_STRING,  "/", 0U, 0U , NULL },
   { 0U, 18U, LINE1, 2, DATA,  0U, (void*)vGetLapmErrorForMenu,   TOTAL_LAMP_ERROR_ID, LEFT_DATA  },
@@ -98,7 +98,7 @@ static xScreenObjet const LampErrorMenuScreen[]=
 
 static xScreenObjet const LampMaxResursScreen[] =
 {
-   { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Ресурс ламп:", 0U, 0U, NULL  },
+   { 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Ресурс ламп", 0U, 0U, NULL  },
    { 0U, 16U, LINE1, 2U, DATA,  0U, (void*)vGetRecourceForMenu,  SCREEN_INDEX_ID, RIGTH_DATA  },
    { 0U, 17U, LINE1, 0U, TEXT_STRING,  "/", 0U, 0U , NULL },
    { 0U, 18U, LINE1, 2, DATA,  0U, (void*)vGetRecourceForMenu,  TOTAL_LAMP_DATA_ID, LEFT_DATA  },
