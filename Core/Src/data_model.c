@@ -307,8 +307,20 @@ void vGetFBOSizeForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 		case mDEC:
 			if (EditFlag == 0) EditDATA = int16GetRegister( DataIndex ) ;
 				EditFlag = 1;
-				if ((EditDATA -step)> 0 )
-					EditDATA = EditDATA - step;
+				if  (step <= EditDATA)
+				{
+					if (DataIndex ==  FBO_SIZE_A)
+					{
+						if( (EditDATA -step )>= 0 )
+					 	 EditDATA = EditDATA - step;
+					}
+					if (DataIndex ==  FBO_SIZE_B)
+					{
+						if( (EditDATA -step )> 0 )
+						  EditDATA = EditDATA - step;
+					}
+
+				}
 				break;
 		case mSAVE:
 				int16SetRegister( DataIndex , (uint16_t)EditDATA );

@@ -189,13 +189,13 @@ static xScreenObjet const LampCountScreen[] =
 
 static xScreenObjet const FBOASizeScreen[]=
 {
-  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО - A", 0U, 0U , NULL },
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО-A", 0U, 0U , NULL },
   { LAST_OBJECT, 10U, LINE2, 5U,  MULTI_EDIT_DATA,    0U,(void*)vGetFBOSizeForMenu, A_SIZE, CENTER_DATA4  },
 };
 
 static xScreenObjet const FBOBSizeScreen[]=
 {
-  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО -B", 0U, 0U , NULL },
+  { 0U, LEFT_OFFSET, LINE1, 14U, TEXT_STRING,  "Типоразмер ФБО-B(D)", 0U, 0U , NULL },
   { LAST_OBJECT, 10U, LINE2, 5U,  MULTI_EDIT_DATA,    0U,(void*)vGetFBOSizeForMenu, B_SIZE, CENTER_DATA4  },
 };
 
