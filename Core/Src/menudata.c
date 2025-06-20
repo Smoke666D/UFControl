@@ -145,7 +145,7 @@ static xScreenObjet const AllLampSetRecourceScreen[] =
 
 static xScreenObjet const LampSetRecourceScreen[] =
 {
-	{ 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Ресурс лампы", 0U, 0U, NULL  },
+	{ 0U, LEFT_OFFSET, LINE1, 5U, TEXT_STRING,  "Ресурс ламп", 0U, 0U, NULL  },
 	{ 0U, 16U, LINE1, 2U, DATA,  0U, (void*)vSetRecourceForMenu,  SCREEN_INDEX_ID, RIGTH_DATA  },
 	{ 0U, 17U, LINE1, 0U, TEXT_STRING,  "/", 0U, 0U , NULL },
 	{ 0U, 18U, LINE1, 2, DATA,  0U, (void*)vSetRecourceForMenu,  TOTAL_LAMP_DATA_ID, LEFT_DATA  },

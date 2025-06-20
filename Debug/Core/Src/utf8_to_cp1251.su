@@ -1,3 +1,0 @@
-../Core/Src/utf8_to_cp1251.c:85:6:setCustomCp1251Table	16	static
-../Core/Src/utf8_to_cp1251.c:92:12:compareConversion	16	static
-../Core/Src/utf8_to_cp1251.c:99:5:convertUtf8ToCp1251	104	static

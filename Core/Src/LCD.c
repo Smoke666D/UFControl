@@ -244,9 +244,9 @@ void LCD_Task(void *argument)
 		{
 			HAL_GPIO_WritePin(Ind_LED_GPIO_Port,Ind_LED_Pin, (LCD_LED_State == 0) ? GPIO_PIN_RESET : GPIO_PIN_SET);
 			xEventGroupWaitBits(system_event, LCD_REDRAW,  pdTRUE, pdTRUE, portMAX_DELAY );
-			taskENTER_CRITICAL();
+			//taskENTER_CRITICAL();
 			vRedrawLCD();
-			taskEXIT_CRITICAL();
+			//taskEXIT_CRITICAL();
 
 		}
 	}

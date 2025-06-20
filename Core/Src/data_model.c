@@ -121,7 +121,7 @@ void vGetErrorForMenu( DATA_COMMNAD_TYPE cmd, char* Data, uint8_t ID )
 	 				 buffer =buffer >> 1;
 	 			 }
 	 			 if ( i!=int8GetRegister(LAMP_COUNT ))
-	 				 sprintf(Data,"Отказ лампы N%02u",i+1);
+	 				 sprintf(Data,"Отказ лампы %02u",i+1);
 	 			 else
 	 				sprintf(Data,"Все исправны");
 	 		 }

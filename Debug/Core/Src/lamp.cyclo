@@ -1,2 +1,0 @@
-../Core/Src/lamp.c:14:7:HAL_RTCEx_RTCEventCallback	3
-../Core/Src/lamp.c:25:6:LAMPstart	16

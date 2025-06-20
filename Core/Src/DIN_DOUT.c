@@ -53,7 +53,7 @@ uint8_t dc_mask[6];
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
 	hspi->ErrorCode = HAL_SPI_ERROR_NONE;
-	 static portBASE_TYPE xHigherPriorityTaskWoken;
+	static portBASE_TYPE xHigherPriorityTaskWoken;
 		 xHigherPriorityTaskWoken = pdFALSE;
 		 xEventGroupSetBitsFromISR( pREGEvent, DATA_LOAD_READY, &xHigherPriorityTaskWoken );
 		 portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
@@ -191,9 +191,9 @@ DIN_FUNCTION_ERROR_t eDinConfig( uint8_t ucCh, DIN_INPUT_TYPE inType, uint32_t u
 static void vDINInit()
 {
 	RegisteDATALoadInit();
-	eDinConfig( INPUT_1, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_2, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_3, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_1, DIN_CONFIG_NEGATIVE , 100, 100 );
+	eDinConfig( INPUT_2, DIN_CONFIG_NEGATIVE , 100, 100 );
+	eDinConfig( INPUT_3, DIN_CONFIG_POSITIVE , 100, 100 );
 	eDinConfig( INPUT_4, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_5, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	PL_SET();

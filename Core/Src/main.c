@@ -288,8 +288,24 @@ EventGroupHandle_t xGetOSEvent()
   * @brief  The application entry point.
   * @retval int
   */
+ uint8_t TestData[100];
+
+ uint16_t TestFucn()
+ {
+	 uint16_t data;
+
+	 for (uint8_t i = 0; i <10; i++ )
+	 {
+		 data = * (( uint16_t *)&TestData[i]);
+
+	 }
+	return (data);
+
+ }
+
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -305,7 +321,7 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-
+  TestFucn();
   /* USER CODE BEGIN SysInit */
   MX_DMA_Init();
   /* USER CODE END SysInit */
@@ -323,9 +339,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM2_Init();
   MX_TIM8_Init();
-#ifdef  WDT_ENABEL
   MX_IWDG_Init();
-#endif
   MX_DAC_Init();
   /* USER CODE BEGIN 2 */
   eEEPROM(&hi2c1);
@@ -407,6 +421,7 @@ int main(void)
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -713,23 +728,7 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date
   */
-  /*sTime.Hours = 0x0;
-  sTime.Minutes = 0x0;
-  sTime.Seconds = 0x0;
 
-  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  DateToUpdate.WeekDay = RTC_WEEKDAY_MONDAY;
-  DateToUpdate.Month = RTC_MONTH_JANUARY;
-  DateToUpdate.Date = 0x1;
-  DateToUpdate.Year = 0x0;
-
-  if (HAL_RTC_SetDate(&hrtc, &DateToUpdate, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }*/
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
@@ -756,8 +755,8 @@ static void MX_SPI2_Init(void)
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
-  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;

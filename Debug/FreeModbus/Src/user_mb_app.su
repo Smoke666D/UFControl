@@ -1,4 +1,0 @@
-../FreeModbus/Src/user_mb_app.c:87:14:eMBRegInputCB	32	static
-../FreeModbus/Src/user_mb_app.c:135:14:eMBRegHoldingCB	40	static
-../FreeModbus/Src/user_mb_app.c:200:14:eMBRegCoilsCB	56	static
-../FreeModbus/Src/user_mb_app.c:280:14:eMBRegDiscreteCB	48	static
